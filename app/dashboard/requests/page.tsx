@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Inbox, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import type { CustomerRequest } from '@/lib/types';
 
@@ -62,13 +63,16 @@ export default function RequestsPage() {
                     <TableCell><Badge variant={r.status === 'resolved' ? 'default' : r.status === 'rejected' ? 'destructive' : 'secondary'}>{r.status}</Badge></TableCell>
                     <TableCell className="text-sm text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                      {r.status === 'pending' && (
-                        <div className="flex gap-1 justify-end">
-                          <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, 'in_progress')}>Start</Button>
-                          <Button size="sm" variant="ghost" onClick={() => updateStatus(r.id, 'resolved')}>Resolve</Button>
-                        </div>
-                      )}
-                      {r.status === 'in_progress' && <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, 'resolved')}>Resolve</Button>}
+                      <div className="flex items-center justify-end gap-1">
+                        <Link href={`/dashboard/requests/${r.id}`}><Button size="sm" variant="ghost">View</Button></Link>
+                        {r.status === 'pending' && (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, 'in_progress')}>Start</Button>
+                            <Button size="sm" variant="ghost" onClick={() => updateStatus(r.id, 'resolved')}>Resolve</Button>
+                          </>
+                        )}
+                        {r.status === 'in_progress' && <Button size="sm" variant="outline" onClick={() => updateStatus(r.id, 'resolved')}>Resolve</Button>}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

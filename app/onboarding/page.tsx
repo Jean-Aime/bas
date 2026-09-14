@@ -10,27 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Zap, Building2, Globe, CheckCircle2, ArrowRight, ArrowLeft, Loader2, Store, Scissors, Hotel, UtensilsCrossed, Heart, Briefcase, Sparkles } from 'lucide-react';
+import { Zap, Globe, CheckCircle2, ArrowRight, ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { BUSINESS_TYPES, PLATFORM_OPTIONS } from '@/lib/onboarding-options';
 import { toast } from 'sonner';
-
-const BUSINESS_TYPES = [
-  { value: 'clothing_store', label: 'Clothing Store', icon: Store },
-  { value: 'salon', label: 'Salon / Beauty', icon: Scissors },
-  { value: 'hotel', label: 'Hotel / Hospitality', icon: Hotel },
-  { value: 'restaurant', label: 'Restaurant', icon: UtensilsCrossed },
-  { value: 'ngo', label: 'NGO / Non-profit', icon: Heart },
-  { value: 'professional', label: 'Professional Services', icon: Briefcase },
-  { value: 'general', label: 'Other Business', icon: Building2 },
-];
-
-const PLATFORM_OPTIONS = [
-  { value: 'website', label: 'Website' },
-  { value: 'ecommerce', label: 'E-commerce (Shopify, WooCommerce)' },
-  { value: 'whatsapp', label: 'WhatsApp Business' },
-  { value: 'booking', label: 'Booking System' },
-  { value: 'social_media', label: 'Social Media' },
-  { value: 'none', label: 'No digital platform' },
-];
 
 export default function OnboardingPage() {
   const router = useRouter();

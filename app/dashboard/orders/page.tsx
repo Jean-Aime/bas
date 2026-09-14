@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ShoppingCart, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import type { Order } from '@/lib/types';
 
@@ -62,12 +63,15 @@ export default function OrdersPage() {
                     <TableCell><Badge variant={o.status === 'completed' ? 'default' : o.status === 'cancelled' ? 'destructive' : 'secondary'}>{o.status}</Badge></TableCell>
                     <TableCell className="text-sm text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                      {o.status === 'pending' && (
-                        <div className="flex gap-1 justify-end">
-                          <Button size="sm" variant="outline" onClick={() => updateStatus(o.id, 'confirmed')}>Confirm</Button>
-                          <Button size="sm" variant="ghost" onClick={() => updateStatus(o.id, 'cancelled')}>Cancel</Button>
-                        </div>
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        <Link href={`/dashboard/orders/${o.id}`}><Button size="sm" variant="ghost">View</Button></Link>
+                        {o.status === 'pending' && (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => updateStatus(o.id, 'confirmed')}>Confirm</Button>
+                            <Button size="sm" variant="ghost" onClick={() => updateStatus(o.id, 'cancelled')}>Cancel</Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

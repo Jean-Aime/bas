@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Users, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 interface Customer {
   id: string;
@@ -53,7 +54,9 @@ export default function CustomersPage() {
               <TableBody>
                 {customers.map((c) => (
                   <TableRow key={c.id}>
-                    <TableCell className="font-medium">{c.name || 'Anonymous'}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`/dashboard/customers/${c.id}`} className="hover:text-primary hover:underline">{c.name || 'Anonymous'}</Link>
+                    </TableCell>
                     <TableCell>{c.email || '—'}</TableCell>
                     <TableCell>{c.phone || '—'}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</TableCell>

@@ -20,6 +20,18 @@ export default function Home() {
             </div>
             <span className="text-xl font-bold tracking-tight">BAS</span>
           </div>
+          <div className="hidden items-center gap-6 lg:flex">
+            {[
+              { href: '/features', label: 'Features' },
+              { href: '/solutions', label: 'Solutions' },
+              { href: '/integrations', label: 'Integrations' },
+              { href: '/pricing', label: 'Pricing' },
+            ].map((l) => (
+              <Link key={l.href} href={l.href} className="text-sm font-medium text-slate-600 hover:text-slate-900">
+                {l.label}
+              </Link>
+            ))}
+          </div>
           <div className="flex items-center gap-3">
             {user ? (
               <Link href="/dashboard">
@@ -160,6 +172,17 @@ export default function Home() {
                 <Zap className="h-4 w-4" />
               </div>
               <span className="font-semibold">BAS</span>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-400">
+              <Link href="/features" className="hover:text-white">Features</Link>
+              <Link href="/solutions" className="hover:text-white">Solutions</Link>
+              <Link href="/integrations" className="hover:text-white">Integrations</Link>
+              <Link href="/pricing" className="hover:text-white">Pricing</Link>
+              <Link href="/about" className="hover:text-white">About</Link>
+              <Link href="/contact" className="hover:text-white">Contact</Link>
+              <Link href="/faq" className="hover:text-white">FAQ</Link>
+              <Link href="/privacy" className="hover:text-white">Privacy</Link>
+              <Link href="/terms" className="hover:text-white">Terms</Link>
             </div>
             <p className="text-sm text-slate-400">Business Automation System — v0.1 Prototype</p>
           </div>

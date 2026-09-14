@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Calendar, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import type { Booking } from '@/lib/types';
 
@@ -62,12 +63,15 @@ export default function BookingsPage() {
                     <TableCell><Badge variant={b.status === 'confirmed' ? 'default' : b.status === 'cancelled' ? 'destructive' : 'secondary'}>{b.status}</Badge></TableCell>
                     <TableCell className="text-sm text-muted-foreground">{new Date(b.created_at).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                      {b.status === 'pending' && (
-                        <div className="flex gap-1 justify-end">
-                          <Button size="sm" variant="outline" onClick={() => updateStatus(b.id, 'confirmed')}>Confirm</Button>
-                          <Button size="sm" variant="ghost" onClick={() => updateStatus(b.id, 'cancelled')}>Cancel</Button>
-                        </div>
-                      )}
+                      <div className="flex items-center justify-end gap-1">
+                        <Link href={`/dashboard/bookings/${b.id}`}><Button size="sm" variant="ghost">View</Button></Link>
+                        {b.status === 'pending' && (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => updateStatus(b.id, 'confirmed')}>Confirm</Button>
+                            <Button size="sm" variant="ghost" onClick={() => updateStatus(b.id, 'cancelled')}>Cancel</Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

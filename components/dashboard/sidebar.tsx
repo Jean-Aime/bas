@@ -4,22 +4,62 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useBusiness } from '@/lib/auth/business-context';
 import { cn } from '@/lib/utils';
-import { Zap, LayoutDashboard, MessageSquare, Users, Package, Wrench, ShoppingCart, Calendar, Inbox, Workflow, BookOpen, Plug, BarChart3, Settings } from 'lucide-react';
+import {
+  Zap, LayoutDashboard, MessageSquare, Users, Package, Wrench, ShoppingCart, Calendar, Inbox,
+  Workflow, BookOpen, Globe, Radio, Bot, BarChart3, Bell, Activity, ScrollText, Users2,
+  Plug, Settings, Code2, LifeBuoy,
+} from 'lucide-react';
 
-const navItems = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/conversations', label: 'Conversations', icon: MessageSquare },
-  { href: '/dashboard/customers', label: 'Customers', icon: Users },
-  { href: '/dashboard/products', label: 'Products', icon: Package },
-  { href: '/dashboard/services', label: 'Services', icon: Wrench },
-  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
-  { href: '/dashboard/bookings', label: 'Bookings', icon: Calendar },
-  { href: '/dashboard/requests', label: 'Requests', icon: Inbox },
-  { href: '/dashboard/automation', label: 'Automation', icon: Workflow },
-  { href: '/dashboard/knowledge', label: 'Knowledge', icon: BookOpen },
-  { href: '/dashboard/integrations', label: 'Integrations', icon: Plug },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+const NAV_GROUPS: { label: string; items: { href: string; label: string; icon: typeof Zap }[] }[] = [
+  {
+    label: 'Main',
+    items: [
+      { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+      { href: '/dashboard/conversations', label: 'Conversations', icon: MessageSquare },
+      { href: '/dashboard/customers', label: 'Customers', icon: Users },
+      { href: '/dashboard/products', label: 'Products', icon: Package },
+      { href: '/dashboard/services', label: 'Services', icon: Wrench },
+      { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
+      { href: '/dashboard/bookings', label: 'Bookings', icon: Calendar },
+      { href: '/dashboard/calendar', label: 'Calendar', icon: Calendar },
+      { href: '/dashboard/requests', label: 'Requests', icon: Inbox },
+    ],
+  },
+  {
+    label: 'Automation',
+    items: [
+      { href: '/dashboard/automation', label: 'Automation', icon: Workflow },
+      { href: '/dashboard/automation/templates', label: 'Templates', icon: Workflow },
+      { href: '/dashboard/knowledge', label: 'Knowledge', icon: BookOpen },
+      { href: '/dashboard/website', label: 'Website', icon: Globe },
+      { href: '/dashboard/channels', label: 'Channels', icon: Radio },
+      { href: '/dashboard/ai', label: 'AI Assistant', icon: Bot },
+    ],
+  },
+  {
+    label: 'Insights',
+    items: [
+      { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+      { href: '/dashboard/notifications', label: 'Notifications', icon: Bell },
+      { href: '/dashboard/activity', label: 'Activity', icon: Activity },
+      { href: '/dashboard/audit-logs', label: 'Audit Logs', icon: ScrollText },
+    ],
+  },
+  {
+    label: 'Team',
+    items: [
+      { href: '/dashboard/team', label: 'Team', icon: Users2 },
+    ],
+  },
+  {
+    label: 'System',
+    items: [
+      { href: '/dashboard/integrations', label: 'Integrations', icon: Plug },
+      { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+      { href: '/dashboard/developer', label: 'Developer', icon: Code2 },
+      { href: '/dashboard/help', label: 'Help', icon: LifeBuoy },
+    ],
+  },
 ];
 
 export function DashboardSidebar() {
@@ -38,27 +78,32 @@ export function DashboardSidebar() {
         </div>
         <nav className="flex-1 overflow-y-auto p-3">
           <div className="mb-3 px-3">
-            <p className="text-xs font-medium text-muted-foreground truncate">{currentBusiness?.name || 'Business'}</p>
+            <p className="truncate text-xs font-medium text-muted-foreground">{currentBusiness?.name || 'Business'}</p>
           </div>
-          <ul className="space-y-1">
-            {navItems.map((item) => {
-              const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                      active ? 'bg-primary text-primary-foreground' : 'text-slate-600 hover:bg-slate-100'
-                    )}
-                  >
-                    <item.icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label} className="mb-4">
+              <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</p>
+              <ul className="space-y-0.5">
+                {group.items.map((item) => {
+                  const active = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+                          active ? 'bg-primary text-primary-foreground' : 'text-slate-600 hover:bg-slate-100'
+                        )}
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
         <div className="border-t p-3">
           <Link
