@@ -1,13 +1,8 @@
 import type {
-  AuditLog,
   Booking,
   Conversation,
-  Customer,
   CustomerRequest,
-  KnowledgeDocument,
-  KnowledgeSource,
   Message,
-  Notification,
   Order,
   Workflow,
   WorkflowExecution,
@@ -16,37 +11,39 @@ import type {
 import { getTemplates } from '@/lib/workflow/templates';
 import {
   BACKGROUND_MESSAGE_BASE,
+  buildAuditLogs,
   buildBusinessHours,
   buildBusinessLocations,
   buildBusinessPolicies,
   buildBusinessProfiles,
   buildBusinessRules,
   buildBusinesses,
+  buildConversationMessages,
+  buildCustomers,
+  buildFaqs,
+  buildKnowledgeDocuments,
+  buildKnowledgeSources,
   buildMemberships,
+  buildNotifications,
   buildProductCategories,
   buildProducts,
   buildServiceCategories,
   buildServices,
-  CUSTOMER_SPECS,
   CONVERSATION_SPECS,
-  DEMO_USER_ID,
   EXECUTION_SPECS,
-  FAQ_SPECS,
   isoDaysAgo,
   isoMinutesAgo,
-  KNOWLEDGE_DOC_SPECS,
   mulberry32,
   BOOKING_SPECS,
   ORDER_SPECS,
   REQUEST_SPECS,
-  type ConversationSpec,
   type TimeHelpers,
 } from './demo-specs';
 
 /**
- * Demo dataset builder — assembles the seeded snapshot from the static specs
- * in demo-specs.ts plus the generative parts (messages, background volume,
- * workflow runs and step logs, timestamps).
+ * Demo dataset builder — assembles the seeded snapshot from the builders in
+ * demo-specs.ts plus the generative parts (background message volume,
+ * workflow runs and step logs, and the order/booking/request joins).
  *
  * Determinism contract:
  *   - Seeded IDs (biz_*, cust_*, conv_*, ord_*, …) are stable across runs.
@@ -55,8 +52,7 @@ import {
  *   - Timestamps are relative to "now" so charts always look populated.
  *
  * The dataset lives in a mutable in-memory store inside demo-client.ts; this
- * module only builds the initial snapshot. Conversation/message helpers are
- * exported for tests that want to inspect the seeded fixtures.
+ * module only builds the initial snapshot.
  */
 
 export interface DemoDataset {
@@ -71,10 +67,10 @@ export interface DemoDataset {
   products: ReturnType<typeof buildProducts>;
   service_categories: Array<Record<string, unknown>>;
   services: ReturnType<typeof buildServices>;
-  faqs: Array<Record<string, unknown>>;
-  knowledge_sources: KnowledgeSource[];
-  knowledge_documents: KnowledgeDocument[];
-  customers: Customer[];
+  faqs: ReturnType<typeof buildFaqs>;
+  knowledge_sources: ReturnType<typeof buildKnowledgeSources>;
+  knowledge_documents: ReturnType<typeof buildKnowledgeDocuments>;
+  customers: ReturnType<typeof buildCustomers>;
   conversations: Conversation[];
   messages: Message[];
   workflows: Workflow[];
@@ -83,57 +79,13 @@ export interface DemoDataset {
   orders: Order[];
   bookings: Booking[];
   requests: CustomerRequest[];
-  notifications: Notification[];
-  audit_logs: AuditLog[];
+  notifications: ReturnType<typeof buildNotifications>;
+  audit_logs: ReturnType<typeof buildAuditLogs>;
 }
 
 /* ---------------------------------------------------------------------- */
-/* Message generation                                                       */
+/* Background message volume                                                */
 /* ---------------------------------------------------------------------- */
-
-export function buildConversationMessages(
-  spec: ConversationSpec,
-  conversationIndex: number,
-  h: TimeHelpers
-): { conversation: Conversation; messages: Message[] } {
-  const ci = conversationIndex;
-  const created = spec.createdDaysAgo === 0
-    ? h.isoMinutesAgo(120 + ci * 15)
-    : h.isoDaysAgo(spec.createdDaysAgo, 9 + (ci % 8));
-  const updatedAt = spec.createdDaysAgo === 0
-    ? h.isoMinutesAgo(5 + ci * 8)
-    : h.isoDaysAgo(spec.createdDaysAgo, 11 + (ci % 6));
-
-  const conversation: Conversation = {
-    id: spec.id,
-    business_id: spec.business_id,
-    customer_id: spec.customer_id,
-    channel: spec.channel,
-    status: spec.status,
-    assigned_to: spec.is_handover ? DEMO_USER_ID : null,
-    is_handover: spec.is_handover,
-    detected_intent: spec.detected_intent,
-    confidence: spec.confidence,
-    metadata: {},
-    created_at: created,
-    updated_at: updatedAt,
-  };
-
-  const span = Math.max(1, Math.floor((new Date(updatedAt).getTime() - new Date(created).getTime()) / 60000));
-  const messages = spec.messages.map((m, mi) => ({
-    id: `msg_${spec.id}_${mi}`,
-    conversation_id: spec.id,
-    business_id: spec.business_id,
-    sender_type: m.sender,
-    content: m.content,
-    intent: mi === 0 ? spec.detected_intent : null,
-    confidence: mi === 0 ? spec.confidence : null,
-    metadata: {},
-    created_at: new Date(new Date(created).getTime() + Math.floor((span / spec.messages.length) * mi) * 60_000).toISOString(),
-  }));
-
-  return { conversation, messages };
-}
 
 /** Message volume for the last 42 days: weekday-heavy, gentle upward trend. */
 function backgroundMessageTimestamps(rand: () => number, businessIndex: number): string[] {
@@ -156,7 +108,7 @@ function backgroundMessageTimestamps(rand: () => number, businessIndex: number):
 }
 
 /** Synthetic "background" conversations feed the volume/trend charts. */
-export function buildBackgroundMessages(
+function buildBackgroundMessages(
   businesses: DemoDataset['businesses'],
   rand: () => number
 ): Message[] {
@@ -185,15 +137,14 @@ export function buildBackgroundMessages(
 /* ---------------------------------------------------------------------- */
 
 /** Builds every workflow for a business: one per template, plus salon's bespoke one. */
-export function buildWorkflowsForBusiness(
+function buildWorkflowsForBusiness(
   business: DemoDataset['businesses'][number],
   businessIndex: number,
   templateCount: number,
   h: TimeHelpers
 ): Workflow[] {
   const workflows: Workflow[] = [];
-  const templates = getTemplates();
-  templates.forEach((tpl, ti) => {
+  getTemplates().forEach((tpl, ti) => {
     workflows.push({
       id: `wf_${businessIndex}_${ti}`,
       business_id: business.id,
@@ -239,8 +190,7 @@ export function buildWorkflowsForBusiness(
 }
 
 /** Replays execution specs into executions + per-step logs. */
-export function buildWorkflowRuns(
-  businesses: DemoDataset['businesses'],
+function buildWorkflowRuns(
   workflows: Workflow[],
   h: TimeHelpers
 ): { workflow_executions: WorkflowExecution[]; workflow_execution_logs: WorkflowExecutionLog[] } {
@@ -307,32 +257,6 @@ export function buildWorkflowRuns(
 }
 
 /* ---------------------------------------------------------------------- */
-/* Notifications + audit logs                                               */
-/* ---------------------------------------------------------------------- */
-
-export function buildNotifications(h: TimeHelpers): Notification[] {
-  return [
-    { id: 'notif_1', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, title: 'New order request', message: 'Aline Uwase requested 1× Black Sneakers (RWF 45,000).', type: 'order', is_read: false, link: '/dashboard/orders', created_at: h.isoMinutesAgo(35) },
-    { id: 'notif_2', business_id: 'biz_salon', user_id: DEMO_USER_ID, title: 'Complaint escalated', message: 'Olivier Nshimiyimana reported a long wait — manager follow-up required.', type: 'handover', is_read: false, link: '/dashboard/requests', created_at: h.isoMinutesAgo(95) },
-    { id: 'notif_3', business_id: 'biz_hotel', user_id: DEMO_USER_ID, title: 'Booking request', message: 'Daniel Kagabo requested the Deluxe Room for two nights.', type: 'booking', is_read: false, link: '/dashboard/bookings', created_at: h.isoMinutesAgo(150) },
-    { id: 'notif_4', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, title: 'Workflow failed', message: 'Order Request could not complete — knowledge search returned no results.', type: 'workflow', is_read: true, link: '/dashboard/automation', created_at: h.isoMinutesAgo(240) },
-    { id: 'notif_5', business_id: 'biz_salon', user_id: DEMO_USER_ID, title: 'Booking confirmed', message: 'Grace Nyirahabimana confirmed a manicure for tomorrow at 2:00 PM.', type: 'booking', is_read: true, link: '/dashboard/bookings', created_at: h.isoDaysAgo(1, 16) },
-    { id: 'notif_6', business_id: 'biz_hotel', user_id: DEMO_USER_ID, title: 'Knowledge imported', message: 'Hotel Guest Guide imported successfully — 1 document added.', type: 'knowledge', is_read: true, link: '/dashboard/knowledge', created_at: h.isoDaysAgo(2, 11) },
-    { id: 'notif_7', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, title: 'Weekly summary ready', message: 'Your automation report for last week is available.', type: 'system', is_read: true, link: '/dashboard/analytics', created_at: h.isoDaysAgo(3, 8) },
-  ];
-}
-
-export function buildAuditLogs(h: TimeHelpers): AuditLog[] {
-  return [
-    { id: 'audit_1', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, action: 'workflow.created', entity_type: 'workflow', entity_id: 'wf_0_4', details: { name: 'Order Request' }, created_at: h.isoDaysAgo(6) },
-    { id: 'audit_2', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, action: 'chat.message_processed', entity_type: 'conversation', entity_id: 'conv_001', details: { intent: 'ORDER', confidence: 0.92 }, created_at: h.isoDaysAgo(6) },
-    { id: 'audit_3', business_id: 'biz_salon', user_id: DEMO_USER_ID, action: 'knowledge.imported', entity_type: 'knowledge_source', entity_id: 'ksrc_salon', details: { title: 'Salon Service Notes' }, created_at: h.isoDaysAgo(4) },
-    { id: 'audit_4', business_id: 'biz_hotel', user_id: null, action: 'chat.message_processed', entity_type: 'conversation', entity_id: 'conv_201', details: { intent: 'BOOKING', confidence: 0.95 }, created_at: h.isoDaysAgo(4) },
-    { id: 'audit_5', business_id: 'biz_salon', user_id: DEMO_USER_ID, action: 'team.member_added', entity_type: 'membership', entity_id: 'mem_2', details: { role: 'staff' }, created_at: h.isoDaysAgo(2) },
-  ];
-}
-
-/* ---------------------------------------------------------------------- */
 /* Snapshot builder                                                         */
 /* ---------------------------------------------------------------------- */
 
@@ -340,28 +264,24 @@ export function buildDemoDataset(): DemoDataset {
   const h: TimeHelpers = { isoDaysAgo, isoMinutesAgo };
 
   const businesses = buildBusinesses(h);
-  const memberships = buildMemberships(businesses, h);
+  const products = buildProducts(h);
+  const services = buildServices(h);
 
   const conversations: Conversation[] = [];
-  const messages: Message[] = [];
+  const conversationMessages: Message[] = [];
   CONVERSATION_SPECS.forEach((spec, ci) => {
-    const { conversation, messages: msgs } = buildConversationMessages(spec, ci, h);
+    const { conversation, messages } = buildConversationMessages(spec, ci, h);
     conversations.push(conversation);
-    messages.push(...msgs);
+    conversationMessages.push(...messages);
   });
-
-  const rand = mulberry32(20260916);
-  messages.push(...buildBackgroundMessages(businesses, rand));
+  const messages = [...conversationMessages, ...buildBackgroundMessages(businesses, mulberry32(20260916))];
 
   const workflows: Workflow[] = [];
   const templateCount = getTemplates().length;
   businesses.forEach((b, bi) => {
     workflows.push(...buildWorkflowsForBusiness(b, bi, templateCount, h));
   });
-  const { workflow_executions, workflow_execution_logs } = buildWorkflowRuns(businesses, workflows, h);
-
-  const products = buildProducts(h);
-  const services = buildServices(h);
+  const { workflow_executions, workflow_execution_logs } = buildWorkflowRuns(workflows, h);
 
   const orders: Order[] = ORDER_SPECS.map((o, i) => {
     const product = products.find((p) => p.id === o.product_id)!;
@@ -418,7 +338,7 @@ export function buildDemoDataset(): DemoDataset {
 
   return {
     businesses,
-    memberships,
+    memberships: buildMemberships(businesses, h),
     business_profiles: buildBusinessProfiles(businesses, h),
     business_hours: buildBusinessHours(businesses),
     business_locations: buildBusinessLocations(h),
@@ -428,41 +348,10 @@ export function buildDemoDataset(): DemoDataset {
     products,
     service_categories: buildServiceCategories(h),
     services,
-    faqs: FAQ_SPECS.map((f) => ({
-      id: f.id,
-      business_id: f.business_id,
-      question: f.question,
-      answer: f.answer,
-      category: f.category,
-      is_published: true,
-      created_at: isoDaysAgo(48),
-      updated_at: isoDaysAgo(2),
-    })),
-    knowledge_sources: [
-      { id: 'ksrc_ut', business_id: 'biz_urban_threads', source_type: 'manual', title: 'Urban Threads Handbook', url: null, content: null, status: 'active', metadata: {}, created_at: isoDaysAgo(45), updated_at: isoDaysAgo(3) },
-      { id: 'ksrc_salon', business_id: 'biz_salon', source_type: 'manual', title: 'Salon Service Notes', url: null, content: null, status: 'active', metadata: {}, created_at: isoDaysAgo(44), updated_at: isoDaysAgo(3) },
-      { id: 'ksrc_hotel', business_id: 'biz_hotel', source_type: 'manual', title: 'Hotel Guest Guide', url: null, content: null, status: 'active', metadata: {}, created_at: isoDaysAgo(43), updated_at: isoDaysAgo(3) },
-    ] as KnowledgeSource[],
-    knowledge_documents: KNOWLEDGE_DOC_SPECS.map((d) => ({
-      id: d.id,
-      business_id: d.business_id,
-      source_id: d.source_id,
-      title: d.title,
-      content: d.content,
-      doc_type: d.doc_type,
-      metadata: {},
-      created_at: isoDaysAgo(43),
-    })),
-    customers: CUSTOMER_SPECS.map((c, i) => ({
-      id: c.id,
-      business_id: c.business_id,
-      name: c.name,
-      email: c.email,
-      phone: c.phone,
-      metadata: { source: 'web_chat' },
-      created_at: isoDaysAgo(40 - i * 2),
-      updated_at: isoDaysAgo(1),
-    })),
+    faqs: buildFaqs(h),
+    knowledge_sources: buildKnowledgeSources(h),
+    knowledge_documents: buildKnowledgeDocuments(h),
+    customers: buildCustomers(h),
     conversations,
     messages,
     workflows,

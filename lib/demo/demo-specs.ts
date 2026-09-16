@@ -1,9 +1,17 @@
 import type {
+  AuditLog,
   Business,
   BusinessHour,
   BusinessLocation,
   BusinessPolicy,
+  Conversation,
+  Customer,
+  FAQ,
+  KnowledgeDocument,
+  KnowledgeSource,
   Membership,
+  Message,
+  Notification,
   Product,
   Service,
 } from '@/lib/types';
@@ -628,3 +636,122 @@ const KNOWLEDGE_DOC_SPECS: KnowledgeDocSpec[] = [
 ];
 
 export { KNOWLEDGE_DOC_SPECS };
+
+/* ---------------------------------------------------------------------- */
+/* Deterministic builders for the remaining fixtures                        */
+/* ---------------------------------------------------------------------- */
+
+/** Three manual knowledge sources, one per business. */
+export function buildKnowledgeSources(h: TimeHelpers): KnowledgeSource[] {
+  return [
+    { id: 'ksrc_ut', business_id: 'biz_urban_threads', source_type: 'manual', title: 'Urban Threads Handbook', url: null, content: null, status: 'active', metadata: {}, created_at: h.isoDaysAgo(45), updated_at: h.isoDaysAgo(3) },
+    { id: 'ksrc_salon', business_id: 'biz_salon', source_type: 'manual', title: 'Salon Service Notes', url: null, content: null, status: 'active', metadata: {}, created_at: h.isoDaysAgo(44), updated_at: h.isoDaysAgo(3) },
+    { id: 'ksrc_hotel', business_id: 'biz_hotel', source_type: 'manual', title: 'Hotel Guest Guide', url: null, content: null, status: 'active', metadata: {}, created_at: h.isoDaysAgo(43), updated_at: h.isoDaysAgo(3) },
+  ];
+}
+
+export function buildKnowledgeDocuments(h: TimeHelpers): KnowledgeDocument[] {
+  return KNOWLEDGE_DOC_SPECS.map((d) => ({
+    id: d.id,
+    business_id: d.business_id,
+    source_id: d.source_id,
+    title: d.title,
+    content: d.content,
+    doc_type: d.doc_type,
+    metadata: {},
+    created_at: h.isoDaysAgo(43),
+  }));
+}
+
+export function buildFaqs(h: TimeHelpers): FAQ[] {
+  return FAQ_SPECS.map((f) => ({
+    id: f.id,
+    business_id: f.business_id,
+    question: f.question,
+    answer: f.answer,
+    category: f.category,
+    is_published: true,
+    created_at: h.isoDaysAgo(48),
+    updated_at: h.isoDaysAgo(2),
+  }));
+}
+
+export function buildCustomers(h: TimeHelpers): Customer[] {
+  return CUSTOMER_SPECS.map((c, i) => ({
+    id: c.id,
+    business_id: c.business_id,
+    name: c.name,
+    email: c.email,
+    phone: c.phone,
+    metadata: { source: 'web_chat' },
+    created_at: h.isoDaysAgo(40 - i * 2),
+    updated_at: h.isoDaysAgo(1),
+  }));
+}
+
+/** Expands a conversation spec into the conversation row and its message thread. */
+export function buildConversationMessages(
+  spec: ConversationSpec,
+  conversationIndex: number,
+  h: TimeHelpers
+): { conversation: Conversation; messages: Message[] } {
+  const ci = conversationIndex;
+  const created = spec.createdDaysAgo === 0
+    ? h.isoMinutesAgo(120 + ci * 15)
+    : h.isoDaysAgo(spec.createdDaysAgo, 9 + (ci % 8));
+  const updatedAt = spec.createdDaysAgo === 0
+    ? h.isoMinutesAgo(5 + ci * 8)
+    : h.isoDaysAgo(spec.createdDaysAgo, 11 + (ci % 6));
+
+  const conversation: Conversation = {
+    id: spec.id,
+    business_id: spec.business_id,
+    customer_id: spec.customer_id,
+    channel: spec.channel,
+    status: spec.status,
+    assigned_to: spec.is_handover ? DEMO_USER_ID : null,
+    is_handover: spec.is_handover,
+    detected_intent: spec.detected_intent,
+    confidence: spec.confidence,
+    metadata: {},
+    created_at: created,
+    updated_at: updatedAt,
+  };
+
+  const span = Math.max(1, Math.floor((new Date(updatedAt).getTime() - new Date(created).getTime()) / 60000));
+  const messages = spec.messages.map((m, mi) => ({
+    id: `msg_${spec.id}_${mi}`,
+    conversation_id: spec.id,
+    business_id: spec.business_id,
+    sender_type: m.sender,
+    content: m.content,
+    intent: mi === 0 ? spec.detected_intent : null,
+    confidence: mi === 0 ? spec.confidence : null,
+    metadata: {},
+    created_at: new Date(new Date(created).getTime() + Math.floor((span / spec.messages.length) * mi) * 60_000).toISOString(),
+  }));
+
+  return { conversation, messages };
+}
+
+export function buildNotifications(h: TimeHelpers): Notification[] {
+  return [
+    { id: 'notif_1', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, title: 'New order request', message: 'Aline Uwase requested 1× Black Sneakers (RWF 45,000).', type: 'order', is_read: false, link: '/dashboard/orders', created_at: h.isoMinutesAgo(35) },
+    { id: 'notif_2', business_id: 'biz_salon', user_id: DEMO_USER_ID, title: 'Complaint escalated', message: 'Olivier Nshimiyimana reported a long wait — manager follow-up required.', type: 'handover', is_read: false, link: '/dashboard/requests', created_at: h.isoMinutesAgo(95) },
+    { id: 'notif_3', business_id: 'biz_hotel', user_id: DEMO_USER_ID, title: 'Booking request', message: 'Daniel Kagabo requested the Deluxe Room for two nights.', type: 'booking', is_read: false, link: '/dashboard/bookings', created_at: h.isoMinutesAgo(150) },
+    { id: 'notif_4', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, title: 'Workflow failed', message: 'Order Request could not complete — knowledge search returned no results.', type: 'workflow', is_read: true, link: '/dashboard/automation', created_at: h.isoMinutesAgo(240) },
+    { id: 'notif_5', business_id: 'biz_salon', user_id: DEMO_USER_ID, title: 'Booking confirmed', message: 'Grace Nyirahabimana confirmed a manicure for tomorrow at 2:00 PM.', type: 'booking', is_read: true, link: '/dashboard/bookings', created_at: h.isoDaysAgo(1, 16) },
+    { id: 'notif_6', business_id: 'biz_hotel', user_id: DEMO_USER_ID, title: 'Knowledge imported', message: 'Hotel Guest Guide imported successfully — 1 document added.', type: 'knowledge', is_read: true, link: '/dashboard/knowledge', created_at: h.isoDaysAgo(2, 11) },
+    { id: 'notif_7', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, title: 'Weekly summary ready', message: 'Your automation report for last week is available.', type: 'system', is_read: true, link: '/dashboard/analytics', created_at: h.isoDaysAgo(3, 8) },
+  ];
+}
+
+export function buildAuditLogs(h: TimeHelpers): AuditLog[] {
+  return [
+    { id: 'audit_1', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, action: 'workflow.created', entity_type: 'workflow', entity_id: 'wf_0_4', details: { name: 'Order Request' }, created_at: h.isoDaysAgo(6) },
+    { id: 'audit_2', business_id: 'biz_urban_threads', user_id: DEMO_USER_ID, action: 'chat.message_processed', entity_type: 'conversation', entity_id: 'conv_001', details: { intent: 'ORDER', confidence: 0.92 }, created_at: h.isoDaysAgo(6) },
+    { id: 'audit_3', business_id: 'biz_salon', user_id: DEMO_USER_ID, action: 'knowledge.imported', entity_type: 'knowledge_source', entity_id: 'ksrc_salon', details: { title: 'Salon Service Notes' }, created_at: h.isoDaysAgo(4) },
+    { id: 'audit_4', business_id: 'biz_hotel', user_id: null, action: 'chat.message_processed', entity_type: 'conversation', entity_id: 'conv_201', details: { intent: 'BOOKING', confidence: 0.95 }, created_at: h.isoDaysAgo(4) },
+    { id: 'audit_5', business_id: 'biz_salon', user_id: DEMO_USER_ID, action: 'team.member_added', entity_type: 'membership', entity_id: 'mem_2', details: { role: 'staff' }, created_at: h.isoDaysAgo(2) },
+  ];
+}
