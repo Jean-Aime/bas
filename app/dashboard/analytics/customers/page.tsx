@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useBusiness } from '@/lib/auth/business-context';
 import { supabase } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BreakdownCard } from '@/components/dashboard/breakdown-card';
 import { Loader2 } from 'lucide-react';
 
 export default function CustomerAnalyticsPage() {
@@ -63,6 +64,7 @@ export default function CustomerAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+      <BreakdownCard title="Recent additions" rows={recent.map((r) => ({ label: r.name || 'Anonymous', count: 1 }))} loading={loading} />
     </div>
   );
 }

@@ -4,73 +4,46 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useBusiness } from '@/lib/auth/business-context';
-import { supabase } from '@/lib/supabase/client';
+import { fetchExecutionDetail, fetchWorkflowForBusiness } from '@/lib/services/execution-service';
+import { WorkflowVisualizer } from '@/components/dashboard/workflow-visualizer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Activity, CheckCircle2, XCircle } from 'lucide-react';
 import { LoadingState, ErrorState } from '@/components/ui/page-states';
 
-interface ExecutionDetail {
-  id: string;
-  workflow_id: string;
-  status: string;
-  trigger_data: Record<string, unknown>;
-  result: Record<string, unknown>;
-  started_at: string;
-  completed_at: string | null;
-}
-
-interface ExecutionLog {
-  id: string;
-  step_name: string;
-  step_index: number;
-  status: string;
-  message: string | null;
-  data: Record<string, unknown>;
-  created_at: string;
-}
-
 export default function ExecutionDetailPage() {
   const { workflowId, executionId } = useParams<{ workflowId: string; executionId: string }>();
   const { currentBusiness } = useBusiness();
-  const [execution, setExecution] = useState<ExecutionDetail | null>(null);
-  const [logs, setLogs] = useState<ExecutionLog[]>([]);
+  const [detail, setDetail] = useState<Awaited<ReturnType<typeof fetchExecutionDetail>>>(null);
+  const [workflow, setWorkflow] = useState<Awaited<ReturnType<typeof fetchWorkflowForBusiness>>>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
     if (currentBusiness) loadExecution();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentBusiness, executionId]);
 
   const loadExecution = async () => {
     if (!currentBusiness) return;
     setLoading(true);
-    const { data, error: err } = await supabase
-      .from('workflow_executions')
-      .select('*')
-      .eq('id', executionId)
-      .eq('workflow_id', workflowId)
-      .eq('business_id', currentBusiness.id)
-      .maybeSingle();
-    if (err || !data) {
+    const result = await fetchExecutionDetail(currentBusiness.id, String(workflowId), String(executionId));
+    if (!result) {
       setError(true);
       setLoading(false);
       return;
     }
-    setExecution(data as ExecutionDetail);
-    const { data: logData } = await supabase
-      .from('workflow_execution_logs')
-      .select('*')
-      .eq('execution_id', executionId)
-      .eq('business_id', currentBusiness.id)
-      .order('step_index');
-    setLogs((logData || []) as ExecutionLog[]);
+    setDetail(result);
+    setWorkflow(await fetchWorkflowForBusiness(currentBusiness.id, String(workflowId)));
     setLoading(false);
   };
 
   if (loading) return <LoadingState label="Loading execution…" />;
-  if (error || !execution) return <ErrorState message="This execution does not exist in the current business." onRetry={loadExecution} />;
+  if (error || !detail) return <ErrorState message="This execution does not exist in the current business." onRetry={loadExecution} />;
+
+  const execution = detail.execution;
+  const logs = detail.logs;
 
   return (
     <div className="space-y-6">
@@ -87,17 +60,32 @@ export default function ExecutionDetailPage() {
         </Badge>
       </div>
 
+      {/* Visual pipeline with true per-step playback from execution logs */}
+      {workflow && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2"><Activity className="h-4 w-4" /> Pipeline replay</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <WorkflowVisualizer
+              workflow={{ trigger_type: workflow.trigger_type, trigger_condition: workflow.trigger_condition, steps: workflow.steps }}
+              logs={logs.map((l) => ({ step_index: l.step_index, status: l.status }))}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader><CardTitle className="text-base">Trigger input</CardTitle></CardHeader>
           <CardContent>
-            <pre className="max-h-40 overflow-auto rounded-lg bg-slate-50 p-3 text-xs">{JSON.stringify(execution.trigger_data || {}, null, 2)}</pre>
+            <pre className="max-h-40 overflow-auto rounded-lg bg-surface-2 p-3 text-xs">{JSON.stringify(execution.trigger_data || {}, null, 2)}</pre>
           </CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle className="text-base">Result</CardTitle></CardHeader>
           <CardContent>
-            <pre className="max-h-40 overflow-auto rounded-lg bg-slate-50 p-3 text-xs">{JSON.stringify(execution.result || {}, null, 2)}</pre>
+            <pre className="max-h-40 overflow-auto rounded-lg bg-surface-2 p-3 text-xs">{JSON.stringify(execution.result || {}, null, 2)}</pre>
           </CardContent>
         </Card>
       </div>

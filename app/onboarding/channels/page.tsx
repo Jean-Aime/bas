@@ -40,11 +40,11 @@ export default function OnboardingChannelsStep() {
               type="button"
               onClick={() => toggle(p.value)}
               className={`flex items-center gap-3 rounded-lg border-2 p-4 text-left transition-all ${
-                channels.platforms.includes(p.value) ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300'
+                channels.platforms.includes(p.value) ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/40'
               }`}
             >
               <div className={`flex h-5 w-5 items-center justify-center rounded border-2 ${
-                channels.platforms.includes(p.value) ? 'border-primary bg-primary' : 'border-slate-300'
+                channels.platforms.includes(p.value) ? 'border-primary bg-primary' : 'border-muted-foreground/30'
               }`}>
                 {channels.platforms.includes(p.value) && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
               </div>

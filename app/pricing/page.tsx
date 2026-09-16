@@ -40,17 +40,17 @@ const PLANS = [
 export default function PricingPage() {
   return (
     <SiteLayout>
-      <section className="bg-gradient-to-b from-slate-50 to-white py-20">
+      <section className="bg-surface-2 py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">Pricing</h1>
-            <p className="mt-4 text-lg text-slate-600">
+            <p className="mt-4 text-lg text-muted-foreground">
               Prototype pricing — plans will be finalized before launch. Start free today.
             </p>
           </div>
           <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {PLANS.map((p) => (
-              <Card key={p.name} className={`border-slate-200 ${p.highlight ? 'border-primary shadow-lg ring-2 ring-primary/20' : ''}`}>
+              <Card key={p.name} className={`${p.highlight ? 'border-primary shadow-card-lg ring-2 ring-primary/20' : ''}`}>
                 <CardHeader>
                   <CardTitle className="text-xl">{p.name}</CardTitle>
                   <div className="text-3xl font-bold tracking-tight">{p.price}</div>
@@ -58,7 +58,7 @@ export default function PricingPage() {
                 </CardHeader>
                 <CardContent className="space-y-2.5">
                   {p.features.map((f) => (
-                    <p key={f} className="flex items-start gap-2 text-sm text-slate-700">
+                    <p key={f} className="flex items-start gap-2 text-sm">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" /> {f}
                     </p>
                   ))}

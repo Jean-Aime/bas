@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Workflow, Plus, Zap, Activity, Loader2, Play, CheckCircle2, XCircle, Pencil } from 'lucide-react';
 import Link from 'next/link';
 import { getTemplates, type WorkflowTemplate } from '@/lib/workflow/templates';
+import { WorkflowIllustration } from '@/components/ui/illustrations';
 import { toast } from 'sonner';
 
 interface WorkflowRow {
@@ -129,8 +130,10 @@ export default function AutomationPage() {
             <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
           ) : workflows.length === 0 ? (
             <div className="flex flex-col items-center py-12 text-center">
-              <Workflow className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground mb-4">No workflows yet. Create one from a template.</p>
+              <WorkflowIllustration className="mx-auto max-w-[300px] text-primary" />
+              <p className="mt-4 font-medium">No workflows yet</p>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">Create one from a template — trigger, decision, action, result. Live in under a minute.</p>
+              <Button size="sm" className="mt-4" onClick={() => setTemplateDialog(true)}><Plus className="mr-2 h-4 w-4" /> Create workflow</Button>
             </div>
           ) : (
             <Table>
@@ -190,8 +193,8 @@ export default function AutomationPage() {
                     <TableRow key={e.id}>
                       <TableCell className="font-medium">{wf?.name || 'Unknown'}</TableCell>
                       <TableCell>
-                        {e.status === 'completed' ? <span className="flex items-center gap-1 text-green-600"><CheckCircle2 className="h-4 w-4" /> Completed</span> :
-                         e.status === 'failed' ? <span className="flex items-center gap-1 text-red-600"><XCircle className="h-4 w-4" /> Failed</span> :
+                        {e.status === 'completed' ? <span className="flex items-center gap-1 text-success"><CheckCircle2 className="h-4 w-4" /> Completed</span> :
+                         e.status === 'failed' ? <span className="flex items-center gap-1 text-destructive"><XCircle className="h-4 w-4" /> Failed</span> :
                          <Badge variant="outline">{e.status}</Badge>}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{new Date(e.started_at).toLocaleString()}</TableCell>

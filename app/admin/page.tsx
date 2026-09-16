@@ -26,7 +26,7 @@ export default function AdminOverviewPage() {
         <Badge variant="outline">v0.1 · structure only</Badge>
       </div>
 
-      <div className="rounded-xl border border-dashed bg-white p-6">
+      <div className="rounded-xl border border-dashed border-border bg-card p-6">
         <p className="text-sm text-muted-foreground">
           Platform administration is <span className="font-medium text-foreground">not implemented in the prototype</span>.
           These routes exist as the future production architecture for managing businesses, users, workflows,
@@ -37,10 +37,10 @@ export default function AdminOverviewPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {MODULES.map((m) => (
           <Link key={m.href} href={m.href}>
-            <Card className="h-full transition-shadow hover:shadow-md">
+            <Card className="h-full transition-shadow hover:shadow-card-hover">
               <CardContent className="p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                     <m.icon className="h-5 w-5" />
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />

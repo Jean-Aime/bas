@@ -2,161 +2,267 @@
 
 import { useEffect, useState } from 'react';
 import { useBusiness } from '@/lib/auth/business-context';
-import { supabase } from '@/lib/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Loader2, MessageSquare, Bot, User, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { PageHeader } from '@/components/ui/page-header';
+import { KpiCard } from '@/components/ui/kpi-card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChartTooltip, CHART_PALETTE, AXIS_DEFAULTS, GRID_DEFAULTS } from '@/components/dashboard/charts';
+import {
+  fetchAnalyticsSnapshot, fetchAutomationRate, percentChange,
+  type AnalyticsSnapshot, type CategorySlice,
+} from '@/lib/services/analytics-service';
+import {
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, ResponsiveContainer,
+} from 'recharts';
+import { MessageSquare, Bot, User, Inbox, TrendingUp, TrendingDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const COLORS = ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#a855f7'];
+const DAYS = 14;
+
+function fmtDate(d: string) { return d; }
+function titleize(s: string) {
+  return s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 export default function AnalyticsPage() {
   const { currentBusiness } = useBusiness();
   const [loading, setLoading] = useState(true);
-  const [intentData, setIntentData] = useState<{ name: string; value: number }[]>([]);
-  const [channelData, setChannelData] = useState<{ name: string; value: number }[]>([]);
-  const [dailyData, setDailyData] = useState<{ date: string; messages: number }[]>([]);
-  const [stats, setStats] = useState({ totalMessages: 0, aiMessages: 0, customerMessages: 0, conversations: 0 });
+  const [snapshot, setSnapshot] = useState<AnalyticsSnapshot | null>(null);
+  const [automation, setAutomation] = useState<{ rate: number | null; aiMessages: number; handovers: number; conversations: number } | null>(null);
 
-  useEffect(() => { if (currentBusiness) loadAnalytics(); }, [currentBusiness]);
-
-  const loadAnalytics = async () => {
+  useEffect(() => {
     if (!currentBusiness) return;
+    let cancelled = false;
     setLoading(true);
-    const bid = currentBusiness.id;
-
-    const [msgs, convs] = await Promise.all([
-      supabase.from('messages').select('sender_type, intent, created_at').eq('business_id', bid),
-      supabase.from('conversations').select('channel, detected_intent').eq('business_id', bid),
-    ]);
-
-    const allMsgs = (msgs.data || []) as Array<Record<string, string>>;
-    const allConvs = (convs.data || []) as Array<Record<string, string>>;
-
-    const intentMap: Record<string, number> = {};
-    allConvs.forEach((c) => {
-      const intent = c.detected_intent || 'general';
-      intentMap[intent] = (intentMap[intent] || 0) + 1;
+    Promise.all([
+      fetchAnalyticsSnapshot(currentBusiness.id, DAYS),
+      fetchAutomationRate(currentBusiness.id),
+    ]).then(([snap, auto]) => {
+      if (cancelled) return;
+      setSnapshot(snap);
+      setAutomation(auto);
+      setLoading(false);
     });
-    setIntentData(Object.entries(intentMap).map(([name, value]) => ({ name, value })));
+    return () => { cancelled = true; };
+  }, [currentBusiness]);
 
-    const channelMap: Record<string, number> = {};
-    allConvs.forEach((c) => {
-      const ch = c.channel || 'web_chat';
-      channelMap[ch] = (channelMap[ch] || 0) + 1;
-    });
-    setChannelData(Object.entries(channelMap).map(([name, value]) => ({ name, value })));
+  const volumeTrend = snapshot ? snapshot.volume.reduce((a, d) => a + d.total, 0) : 0;
+  const recentHalf = snapshot ? snapshot.volume.slice(Math.ceil(DAYS / 2)).reduce((a, d) => a + d.total, 0) : 0;
+  const priorHalf = snapshot ? snapshot.volume.slice(0, Math.floor(DAYS / 2)).reduce((a, d) => a + d.total, 0) : 0;
+  const volumeDelta = percentChange(recentHalf, priorHalf);
 
-    const dailyMap: Record<string, number> = {};
-    allMsgs.forEach((m) => {
-      const d = new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      dailyMap[d] = (dailyMap[d] || 0) + 1;
-    });
-    setDailyData(Object.entries(dailyMap).slice(-7).map(([date, messages]) => ({ date, messages })));
-
-    setStats({
-      totalMessages: allMsgs.length,
-      aiMessages: allMsgs.filter((m) => m.sender_type === 'assistant').length,
-      customerMessages: allMsgs.filter((m) => m.sender_type === 'customer').length,
-      conversations: allConvs.length,
-    });
-    setLoading(false);
-  };
-
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  const automationRate = automation?.rate ?? null;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
-        <p className="text-muted-foreground">Conversation insights and automation performance</p>
+      <PageHeader
+        title="Analytics"
+        description={`Conversation insights and automation performance — last ${DAYS} days`}
+      />
+
+      {/* KPI row */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          label="Messages"
+          value={snapshot?.stats.totalMessages ?? 0}
+          icon={MessageSquare}
+          tone="primary"
+          delta={loading ? null : volumeDelta}
+          deltaLabel="2nd half vs 1st"
+          loading={loading}
+        />
+        <KpiCard
+          label="AI responses"
+          value={snapshot?.stats.aiMessages ?? 0}
+          icon={Bot}
+          tone="primary"
+          loading={loading}
+        />
+        <KpiCard
+          label="Customer messages"
+          value={snapshot?.stats.customerMessages ?? 0}
+          icon={User}
+          tone="warning"
+          loading={loading}
+        />
+        <KpiCard
+          label="Conversations"
+          value={snapshot?.stats.conversations ?? 0}
+          icon={Inbox}
+          tone="success"
+          loading={loading}
+        />
       </div>
 
-      {/* Summary stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card><CardContent className="p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50"><MessageSquare className="h-5 w-5 text-blue-600" /></div>
-            <div><p className="text-sm text-muted-foreground">Total Messages</p><p className="text-2xl font-bold">{stats.totalMessages}</p></div>
+      {/* Message volume — stacked area */}
+      <Card>
+        <CardHeader className="flex-row items-start justify-between space-y-0">
+          <div className="space-y-1.5">
+            <CardTitle>Message volume</CardTitle>
+            <CardDescription>Customer vs AI assistant messages per day</CardDescription>
           </div>
-        </CardContent></Card>
-        <Card><CardContent className="p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10"><Bot className="h-5 w-5 text-primary" /></div>
-            <div><p className="text-sm text-muted-foreground">AI Responses</p><p className="text-2xl font-bold">{stats.aiMessages}</p></div>
-          </div>
-        </CardContent></Card>
-        <Card><CardContent className="p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50"><User className="h-5 w-5 text-orange-600" /></div>
-            <div><p className="text-sm text-muted-foreground">Customer Messages</p><p className="text-2xl font-bold">{stats.customerMessages}</p></div>
-          </div>
-        </CardContent></Card>
-        <Card><CardContent className="p-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50"><TrendingUp className="h-5 w-5 text-green-600" /></div>
-            <div><p className="text-sm text-muted-foreground">Conversations</p><p className="text-2xl font-bold">{stats.conversations}</p></div>
-          </div>
-        </CardContent></Card>
-      </div>
+          <span
+            className={cn(
+              'flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium',
+              volumeDelta === null ? 'bg-secondary text-secondary-foreground'
+                : volumeDelta >= 0 ? 'bg-success-soft text-success-soft-fg' : 'bg-destructive-soft text-destructive-soft-fg'
+            )}
+          >
+            {volumeDelta === null ? 'No trend yet' : volumeDelta >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {volumeDelta !== null && `${volumeDelta >= 0 ? '+' : ''}${volumeDelta.toFixed(0)}%`}
+          </span>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <Skeleton className="h-64 w-full rounded-lg" />
+          ) : !snapshot || volumeTrend === 0 ? (
+            <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
+              <MessageSquare className="h-8 w-8 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">No messages in this period yet.</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <AreaChart data={snapshot.volume} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                <defs>
+                  <linearGradient id="cust-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.03} />
+                  </linearGradient>
+                  <linearGradient id="ai-grad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.03} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid {...GRID_DEFAULTS} />
+                <XAxis dataKey="date" {...AXIS_DEFAULTS} />
+                <YAxis {...AXIS_DEFAULTS} allowDecimals={false} />
+                <ChartTooltip />
+                <Area type="monotone" dataKey="customer" name="Customer" stroke="hsl(var(--chart-1))" strokeWidth={2} fill="url(#cust-grad)" stackId="vol" />
+                <Area type="monotone" dataKey="assistant" name="AI assistant" stroke="hsl(var(--chart-2))" strokeWidth={2} fill="url(#ai-grad)" stackId="vol" />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
+        {/* Intent donut */}
         <Card>
-          <CardHeader><CardTitle className="text-base">Messages Over Time</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Intent distribution</CardTitle>
+            <CardDescription>What customers ask about most</CardDescription>
+          </CardHeader>
           <CardContent>
-            {dailyData.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
+            {loading ? (
+              <Skeleton className="mx-auto h-60 w-60 rounded-full" />
+            ) : !snapshot || snapshot.intents.length === 0 ? (
+              <p className="py-16 text-center text-sm text-muted-foreground">No conversations yet.</p>
             ) : (
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={dailyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="messages" stroke="#0ea5e9" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={snapshot.intents.slice(0, 6)}
+                      cx="50%" cy="50%" innerRadius={55} outerRadius={88}
+                      dataKey="value" paddingAngle={2} strokeWidth={0}
+                    >
+                      {snapshot.intents.slice(0, 6).map((_, i) => (
+                        <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip formatter={(v) => `${v} conversations`} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <ul className="w-full max-w-[220px] space-y-1.5">
+                  {snapshot.intents.slice(0, 6).map((slice: CategorySlice, i) => (
+                    <li key={slice.name} className="flex items-center gap-2 text-sm">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ background: CHART_PALETTE[i % CHART_PALETTE.length] }} />
+                      <span className="truncate text-muted-foreground">{titleize(slice.name)}</span>
+                      <span className="ml-auto font-medium tabular-nums">{slice.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </CardContent>
         </Card>
 
+        {/* Channel bars */}
         <Card>
-          <CardHeader><CardTitle className="text-base">Intent Distribution</CardTitle></CardHeader>
+          <CardHeader>
+            <CardTitle>Channels</CardTitle>
+            <CardDescription>Where conversations start</CardDescription>
+          </CardHeader>
           <CardContent>
-            {intentData.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
+            {loading ? (
+              <Skeleton className="h-60 w-full rounded-lg" />
+            ) : !snapshot || snapshot.channels.length === 0 ? (
+              <p className="py-16 text-center text-sm text-muted-foreground">No conversations yet.</p>
             ) : (
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie data={intentData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name }) => name}>
-                    {intentData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="lg:col-span-2">
-          <CardHeader><CardTitle className="text-base">Channel Distribution</CardTitle></CardHeader>
-          <CardContent>
-            {channelData.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">No data yet</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={channelData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={snapshot.channels.map((c) => ({ ...c, name: titleize(c.name) }))} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 6" stroke="hsl(var(--border))" horizontal={false} />
+                  <XAxis type="number" {...AXIS_DEFAULTS} allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" width={90} {...AXIS_DEFAULTS} />
+                  <ChartTooltip formatter={(v) => `${v} conversations`} />
+                  <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={18}>
+                    {snapshot.channels.map((_, i) => (
+                      <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Automation rate */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Automation rate</CardTitle>
+          <CardDescription>Share of conversations handled end-to-end without a human</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loading || !automation ? (
+            <Skeleton className="h-16 w-full rounded-lg" />
+          ) : automationRate === null ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">No conversations yet — the rate appears once customers start chatting.</p>
+          ) : (
+            <div className="flex items-center gap-6">
+              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
+                <svg viewBox="0 0 80 80" className="h-20 w-20 -rotate-90">
+                  <circle cx="40" cy="40" r="34" fill="none" stroke="hsl(var(--secondary))" strokeWidth="8" />
+                  <circle
+                    cx="40" cy="40" r="34" fill="none"
+                    stroke="hsl(var(--chart-2))"
+                    strokeWidth="8" strokeLinecap="round"
+                    strokeDasharray={`${(automationRate / 100) * 2 * Math.PI * 34} ${2 * Math.PI * 34}`}
+                    className="transition-all duration-700 ease-out"
+                  />
+                </svg>
+                <span className="absolute text-lg font-bold tabular-nums">{automationRate}%</span>
+              </div>
+              <div className="grid flex-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-lg border bg-secondary/40 p-3">
+                  <p className="text-caption text-muted-foreground">AI messages</p>
+                  <p className="text-xl font-bold tabular-nums">{automation.aiMessages.toLocaleString()}</p>
+                </div>
+                <div className="rounded-lg border bg-secondary/40 p-3">
+                  <p className="text-caption text-muted-foreground">Human handovers</p>
+                  <p className="text-xl font-bold tabular-nums">{automation.handovers.toLocaleString()}</p>
+                </div>
+                <div className="rounded-lg border bg-secondary/40 p-3">
+                  <p className="text-caption text-muted-foreground">Total conversations</p>
+                  <p className="text-xl font-bold tabular-nums">{automation.conversations.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

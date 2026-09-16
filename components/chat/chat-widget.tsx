@@ -92,7 +92,7 @@ export function ChatWidget({ business }: { business: ChatBusiness }) {
           <div key={i} className={`flex ${msg.role === 'customer' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] rounded-2xl p-3 ${
               msg.role === 'customer' ? 'bg-primary text-primary-foreground rounded-br-sm' :
-              'bg-slate-100 text-slate-900 rounded-bl-sm'
+              'bg-muted text-foreground rounded-bl-sm'
             }`}>
               {msg.role === 'assistant' && (
                 <div className="mb-1 flex items-center gap-1.5">
@@ -106,7 +106,7 @@ export function ChatWidget({ business }: { business: ChatBusiness }) {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="rounded-2xl rounded-bl-sm bg-slate-100 p-3">
+            <div className="rounded-2xl rounded-bl-sm bg-muted p-3">
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 <span className="text-sm text-muted-foreground">Typing...</span>
@@ -128,7 +128,7 @@ export function ChatWidget({ business }: { business: ChatBusiness }) {
         </Button>
       </div>
       {handover && (
-        <div className="flex items-center gap-1.5 border-t bg-orange-50 px-3 py-2 text-xs font-medium text-orange-600">
+        <div className="flex items-center gap-1.5 border-t bg-warning/10 px-3 py-2 text-xs font-medium text-warning">
           <User className="h-3 w-3" /> Connected to staff — a team member has taken over this conversation.
         </div>
       )}

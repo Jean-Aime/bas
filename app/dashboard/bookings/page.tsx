@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useBusiness } from '@/lib/auth/business-context';
-import { supabase } from '@/lib/supabase/client';
+import { fetchBookings, updateBookingStatus } from '@/lib/services/crm-service';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/ui/page-header';
+import { Calendar, CalendarOff } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import type { Booking } from '@/lib/types';
@@ -17,37 +19,42 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { if (currentBusiness) loadBookings(); }, [currentBusiness]);
-
-  const loadBookings = async () => {
+  const reload = useCallback(async () => {
     if (!currentBusiness) return;
     setLoading(true);
-    const { data } = await supabase.from('bookings').select('*').eq('business_id', currentBusiness.id).order('created_at', { ascending: false });
-    setBookings((data || []) as Booking[]);
+    const rows = await fetchBookings(currentBusiness.id);
+    setBookings(rows);
     setLoading(false);
-  };
+  }, [currentBusiness]);
 
-  const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
-    if (error) { toast.error(error.message); return; }
+  useEffect(() => { reload(); }, [reload]);
+
+  const handleStatus = async (id: string, status: string) => {
+    const { error } = await updateBookingStatus(id, status);
+    if (error) { toast.error(error); return; }
     toast.success(`Booking ${status}`);
-    loadBookings();
+    reload();
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Bookings</h1>
-        <p className="text-muted-foreground">Customer booking and appointment requests</p>
-      </div>
+      <PageHeader title="Bookings" description="Customer booking and appointment requests" />
+
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
+            </div>
           ) : bookings.length === 0 ? (
             <div className="flex flex-col items-center py-16 text-center">
-              <Calendar className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No bookings yet. Booking requests from customer chat will appear here.</p>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
+                <CalendarOff className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="mt-3 font-medium">No bookings yet</p>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+    Appointment requests from customer chat appear here for confirmation.
+              </p>
             </div>
           ) : (
             <Table>
@@ -67,8 +74,8 @@ export default function BookingsPage() {
                         <Link href={`/dashboard/bookings/${b.id}`}><Button size="sm" variant="ghost">View</Button></Link>
                         {b.status === 'pending' && (
                           <>
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(b.id, 'confirmed')}>Confirm</Button>
-                            <Button size="sm" variant="ghost" onClick={() => updateStatus(b.id, 'cancelled')}>Cancel</Button>
+                            <Button size="sm" variant="outline" onClick={() => handleStatus(b.id, 'confirmed')}>Confirm</Button>
+                            <Button size="sm" variant="ghost" onClick={() => handleStatus(b.id, 'cancelled')}>Cancel</Button>
                           </>
                         )}
                       </div>

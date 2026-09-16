@@ -20,7 +20,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import type { WorkflowStep, IntentType } from '@/lib/types';
+import type { WorkflowStep, IntentType, WorkflowExecution } from '@/lib/types';
+import { WorkflowVisualizer } from '@/components/dashboard/workflow-visualizer';
+import { fetchWorkflow, fetchRecentExecutions } from '@/lib/services/dashboard-service';
 
 const STEP_TYPES = [
   { value: 'intent_detection', label: 'Detect Intent' },
@@ -85,6 +87,8 @@ export default function WorkflowBuilderPage() {
   const [triggerIntent, setTriggerIntent] = useState<string>('GENERAL_INQUIRY');
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
   const [status, setStatus] = useState('active');
+  const [visualizerWorkflow, setVisualizerWorkflow] = useState<WorkflowRow | null>(null);
+  const [visualizerExecutions, setVisualizerExecutions] = useState<WorkflowExecution[]>([]);
 
   useEffect(() => {
     if (id && currentBusiness) loadWorkflow();
@@ -115,6 +119,11 @@ export default function WorkflowBuilderPage() {
     setSteps(wf.steps || []);
     setStatus(wf.status);
     setLoading(false);
+
+    // Visualizer data — non-blocking, loaded after the editor renders.
+    if (currentBusiness) {
+      fetchRecentExecutions(currentBusiness.id, String(id), 5).then(setVisualizerExecutions).catch(() => {});
+    }
   };
 
   const addStep = () => {
@@ -327,6 +336,26 @@ export default function WorkflowBuilderPage() {
             </CardContent>
           </Card>
 
+          {/* Visual pipeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><WorkflowIcon className="h-4 w-4" /> Pipeline</CardTitle>
+              <CardDescription>
+                How this workflow executes: trigger → decisions → actions → result
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <WorkflowVisualizer
+                workflow={{
+                  trigger_type: triggerType,
+                  trigger_condition: { intent: triggerIntent },
+                  steps,
+                }}
+                executions={visualizerExecutions}
+              />
+            </CardContent>
+          </Card>
+
           {/* Test execution */}
           <Card>
             <CardHeader>
@@ -362,9 +391,9 @@ export default function WorkflowBuilderPage() {
                     {testResult.steps.map((s, i) => (
                       <div key={i} className="flex items-start gap-3 rounded-lg border p-3">
                         <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
-                          s.status === 'completed' ? 'bg-green-100 text-green-700' :
-                          s.status === 'failed' ? 'bg-red-100 text-red-700' :
-                          'bg-slate-100 text-slate-600'
+                          s.status === 'completed' ? 'bg-success/10 text-success' :
+                          s.status === 'failed' ? 'bg-destructive/10 text-destructive' :
+                          'bg-muted text-muted-foreground'
                         }`}>{i + 1}</div>
                         <div className="flex-1">
                           <p className="text-sm font-medium">{s.name}</p>
@@ -375,7 +404,7 @@ export default function WorkflowBuilderPage() {
                   </div>
 
                   {testResult.reply && (
-                    <div className="rounded-lg bg-slate-50 p-4">
+                    <div className="rounded-lg bg-surface-2 p-4">
                       <p className="mb-1 text-xs font-medium text-muted-foreground flex items-center gap-1">
                         <MessageSquare className="h-3 w-3" /> Assistant reply
                       </p>

@@ -103,9 +103,16 @@ export default function OnboardingPage() {
     if (!user) return;
     setSeeding(true);
     try {
+      // Forward the caller's access token so the API route acts as the user
+      // (RLS: business inserts are owner-only, and the server session lives in
+      // localStorage, which the server side cannot see without the header).
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch('/api/seed', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({ userId: user.id }),
       });
       const data = await response.json();
@@ -129,10 +136,10 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      <nav className="border-b bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-background">
+      <nav className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-3.5">
+          <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Zap className="h-4 w-4" />
             </div>
@@ -184,10 +191,10 @@ export default function OnboardingPage() {
                       type="button"
                       onClick={() => setBusinessType(t.value)}
                       className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 text-center transition-all ${
-                        businessType === t.value ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300'
+                        businessType === t.value ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/40'
                       }`}
                     >
-                      <t.icon className={`h-6 w-6 ${businessType === t.value ? 'text-primary' : 'text-slate-500'}`} />
+                      <t.icon className={`h-6 w-6 ${businessType === t.value ? 'text-primary' : 'text-muted-foreground'}`} />
                       <span className="text-xs font-medium">{t.label}</span>
                     </button>
                   ))}
@@ -262,11 +269,11 @@ export default function OnboardingPage() {
                     type="button"
                     onClick={() => togglePlatform(p.value)}
                     className={`flex items-center gap-3 rounded-lg border-2 p-4 text-left transition-all ${
-                      platforms.includes(p.value) ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300'
+                      platforms.includes(p.value) ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/40'
                     }`}
                   >
                     <div className={`flex h-5 w-5 items-center justify-center rounded border-2 ${
-                      platforms.includes(p.value) ? 'border-primary bg-primary' : 'border-slate-300'
+                      platforms.includes(p.value) ? 'border-primary bg-primary' : 'border-muted-foreground/30'
                     }`}>
                       {platforms.includes(p.value) && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
                     </div>
@@ -312,7 +319,7 @@ export default function OnboardingPage() {
               <CardDescription>Confirm your business details below. You can change everything later.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-lg border bg-slate-50 p-4 space-y-3">
+              <div className="rounded-lg border border-border bg-surface-2/50 p-4 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Name</span>
                   <span className="font-medium">{businessName}</span>
@@ -350,7 +357,7 @@ export default function OnboardingPage() {
               </div>
 
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                <p className="text-sm text-slate-700">
+                <p className="text-sm text-foreground/80">
                   After creating your business, you&apos;ll be able to add products, services, FAQs, policies,
                   and connect more integrations from the dashboard.
                 </p>

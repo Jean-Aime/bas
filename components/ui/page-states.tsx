@@ -162,7 +162,7 @@ export function UnderConstruction() {
 /** Public "service unavailable" full-page state (maintenance etc.). */
 export function MaintenanceState({ title = 'We\'ll be right back', description }: { title?: string; description?: string }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-surface-2 px-4 text-center">
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
         <Lock className="h-7 w-7 text-primary" />
       </div>

@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { BookOpen, Plus, Trash2, Loader2, Globe, FileText, HelpCircle, Shield } from 'lucide-react';
+import { KnowledgeIllustration } from '@/components/ui/illustrations';
 import { toast } from 'sonner';
 import type { BusinessPolicy, FAQ, KnowledgeSource } from '@/lib/types';
 
@@ -125,9 +126,11 @@ export default function KnowledgePage() {
             </Dialog>
           </div>
           {faqs.length === 0 ? (
-            <Card><CardContent className="flex flex-col items-center py-12 text-center">
-              <HelpCircle className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No FAQs yet. Add questions your customers frequently ask.</p>
+            <Card><CardContent className="flex flex-col items-center py-10 text-center">
+              <HelpCircle className="h-10 w-10 rounded-full bg-muted p-2.5 text-muted-foreground" />
+              <p className="mt-3 font-medium">No FAQs yet</p>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">Add the questions your customers ask most — the AI answers from them instantly.</p>
+              <Button size="sm" className="mt-4" onClick={() => setFaqDialog(true)}><Plus className="mr-2 h-4 w-4" /> Add your first FAQ</Button>
             </CardContent></Card>
           ) : (
             <div className="space-y-3">{faqs.map((f) => (
@@ -160,9 +163,11 @@ export default function KnowledgePage() {
             </Dialog>
           </div>
           {policies.length === 0 ? (
-            <Card><CardContent className="flex flex-col items-center py-12 text-center">
-              <Shield className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No policies yet. Add your business policies for the AI to reference.</p>
+            <Card><CardContent className="flex flex-col items-center py-10 text-center">
+              <Shield className="h-10 w-10 rounded-full bg-muted p-2.5 text-muted-foreground" />
+              <p className="mt-3 font-medium">No policies yet</p>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">Add return, delivery, and cancellation policies — the AI cites them when customers ask.</p>
+              <Button size="sm" className="mt-4" onClick={() => setPolicyDialog(true)}><Plus className="mr-2 h-4 w-4" /> Add your first policy</Button>
             </CardContent></Card>
           ) : (
             <div className="space-y-3">{policies.map((p) => (
@@ -198,9 +203,13 @@ export default function KnowledgePage() {
             </Dialog>
           </div>
           {sources.length === 0 ? (
-            <Card><CardContent className="flex flex-col items-center py-12 text-center">
-              <Globe className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No knowledge sources yet. Import content from your website URL.</p>
+            <Card><CardContent className="py-10">
+              <div className="mx-auto max-w-sm text-center">
+                <KnowledgeIllustration className="mx-auto max-w-[240px] text-primary" />
+                <p className="mt-4 font-medium">Import your website</p>
+                <p className="mt-1 text-sm text-muted-foreground">Paste your URL and BAS extracts services, prices, and policies into structured knowledge.</p>
+                <Button size="sm" className="mt-4" onClick={() => setUrlDialog(true)}><Globe className="mr-2 h-4 w-4" /> Import a website</Button>
+              </div>
             </CardContent></Card>
           ) : (
             <div className="space-y-3">{sources.map((s) => (

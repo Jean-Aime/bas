@@ -86,7 +86,7 @@ export default function ImportDetailPage() {
           <CardHeader><CardTitle className="text-base">Extracted content</CardTitle></CardHeader>
           <CardContent>
             {source.content ? (
-              <p className="max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-xs text-slate-700">{source.content.slice(0, 4000)}</p>
+              <p className="max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-surface-2 p-3 text-xs">{source.content.slice(0, 4000)}</p>
             ) : (
               <p className="text-sm text-muted-foreground">No extracted content recorded.</p>
             )}

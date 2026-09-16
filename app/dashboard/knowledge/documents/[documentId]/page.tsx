@@ -67,7 +67,7 @@ export default function DocumentDetailPage() {
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" /> Content</CardTitle></CardHeader>
         <CardContent>
-          <p className="whitespace-pre-wrap rounded-lg bg-slate-50 p-4 text-sm text-slate-700">{doc.content}</p>
+          <p className="whitespace-pre-wrap rounded-lg bg-surface-2 p-4 text-sm">{doc.content}</p>
         </CardContent>
       </Card>
     </div>

@@ -2,67 +2,123 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ------------------------------------------------------------------ */
+/* BAS Design Tokens                                                   */
+/* Light + dark themes, semantic status colors, motion primitives      */
+/* ------------------------------------------------------------------ */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Neutrals — cool charcoal with a hint of blue */
+    --background: 210 40% 98%;
+    --foreground: 224 64% 10%;
+
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 224 64% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 100%;
+    --popover-foreground: 224 64% 10%;
+
+    --sidebar: 0 0% 100%;
+
+    /* Primary — deep modern blue (Stripe/Linear territory) */
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
+
     --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --secondary-foreground: 224 64% 10%;
+
+    --muted: 210 40% 95%;
+    --muted-foreground: 215 20% 44%;
+
+    --accent: 213 100% 96%;
+    --accent-foreground: 221 83% 40%;
+
+    /* Semantic status colors */
+    --success: 142 71% 42%;
+    --success-soft: 141 80% 94%;
+    --success-soft-fg: 144 70% 26%;
+
+    --warning: 27 92% 46%;
+    --warning-soft: 44 96% 91%;
+    --warning-soft-fg: 26 88% 34%;
+
+    --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 199 89% 48%;
-    --chart-1: 199 89% 48%;
-    --chart-2: 142 71% 45%;
+    --destructive-soft: 4 90% 96%;
+    --destructive-soft-fg: 0 74% 42%;
+
+    --info: 213 94% 44%;
+    --info-soft: 214 95% 94%;
+    --info-soft-fg: 216 82% 34%;
+
+    /* Elevated page surface for sectioned marketing pages */
+    --surface-2: 210 40% 96%;
+
+    --border: 214 28% 90%;
+    --input: 214 28% 88%;
+    --ring: 221 83% 53%;
+
+    /* Data-viz palette */
+    --chart-1: 221 83% 53%;
+    --chart-2: 173 58% 39%;
     --chart-3: 38 92% 50%;
-    --chart-4: 280 65% 60%;
+    --chart-4: 262 60% 58%;
     --chart-5: 340 75% 55%;
-    --radius: 0.5rem;
+
+    --radius: 0.625rem;
   }
+
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 63% 31%;
+    --background: 225 45% 6%;
+    --foreground: 213 30% 94%;
+
+    --card: 224 42% 9%;
+    --card-foreground: 213 30% 94%;
+    --popover: 224 42% 10%;
+    --popover-foreground: 213 30% 94%;
+
+    --sidebar: 224 42% 8%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 8%;
+
+    --secondary: 219 32% 15%;
+    --secondary-foreground: 213 30% 94%;
+
+    --muted: 219 32% 14%;
+    --muted-foreground: 217 15% 63%;
+
+    --accent: 220 40% 16%;
+    --accent-foreground: 213 90% 75%;
+
+    --success: 142 66% 55%;
+    --success-soft: 142 55% 13%;
+    --success-soft-fg: 142 65% 68%;
+
+    --warning: 36 92% 56%;
+    --warning-soft: 33 70% 14%;
+    --warning-soft-fg: 40 90% 66%;
+
+    --destructive: 0 72% 58%;
     --destructive-foreground: 0 0% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 199 89% 48%;
-    --chart-1: 199 89% 48%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --destructive-soft: 0 55% 14%;
+    --destructive-soft-fg: 2 85% 72%;
+
+    --info: 213 94% 66%;
+    --info-soft: 216 65% 14%;
+    --info-soft-fg: 212 90% 74%;
+
+    --surface-2: 219 32% 11%;
+
+    --border: 219 30% 16%;
+    --input: 219 30% 18%;
+    --ring: 217 91% 60%;
+
+    --chart-1: 217 91% 60%;
+    --chart-2: 173 58% 45%;
+    --chart-3: 38 92% 55%;
+    --chart-4: 262 70% 66%;
+    --chart-5: 340 80% 62%;
   }
 }
 
@@ -70,9 +126,28 @@
   * {
     @apply border-border;
   }
+  html {
+    scroll-behavior: smooth;
+  }
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1, "cv02" 1, "cv11" 1;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    @apply bg-primary/20;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
+  /* Consistent, accessible focus for interactive elements */
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid hsl(var(--ring) / 0.7);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 
@@ -90,5 +165,73 @@
   }
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  /* Gradient headline text for the marketing site */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary via-primary to-info bg-clip-text text-transparent;
+  }
+
+  /* Subtle engineering grid for hero/marketing backgrounds */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--foreground) / 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--foreground) / 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .bg-grid-fade {
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
+  }
+
+  /* Standard interactive card lift */
+  .card-hover {
+    @apply transition-all duration-200 ease-out hover:-translate-y-0.5 hover:shadow-card-hover;
+  }
+
+  /* Hairline top highlight used on premium cards */
+  .card-highlight {
+    position: relative;
+  }
+  .card-highlight::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.35), transparent);
+    border-radius: inherit;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion system                                                       */
+/* Micro 100–200ms · Standard 200–300ms · Emphasis 300–500ms           */
+/* ------------------------------------------------------------------ */
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes dash-flow {
+  to { stroke-dashoffset: -14; }
+}
+
+.animate-float { animation: float-y 5s ease-in-out infinite; }
+.animate-dash {
+  stroke-dasharray: 6 8;
+  animation: dash-flow 1.2s linear infinite;
+}
+
+/* Respect users who disable animation — interface remains usable */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

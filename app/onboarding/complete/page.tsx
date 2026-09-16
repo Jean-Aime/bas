@@ -138,7 +138,7 @@ export default function OnboardingCompleteStep() {
       onNext={handleCreate}
     >
       <div className="space-y-4">
-        <div className="flex items-center gap-3 rounded-lg border bg-slate-50 p-4">
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-surface-2/50 p-4">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <Building2 className="h-5 w-5 text-primary" />
           </div>

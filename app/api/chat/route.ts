@@ -115,14 +115,20 @@ export async function POST(req: NextRequest) {
       await emit('handover.requested', businessId, { conversationId: convId, reason: 'AI escalation' });
     }
 
-    await createAuditEntry({
-      businessId,
-      userId: null,
-      action: 'chat.message_processed',
-      entityType: 'conversation',
-      entityId: convId,
-      details: { intent: result.response.intent, confidence: result.response.confidence },
-    });
+    // Audit logs require an authenticated request — the public chat runs as
+    // anon and RLS (correctly) rejects anon audit inserts, so skip the write
+    // there to avoid a guaranteed policy error on every customer message.
+    const { data: { user: requestUser } } = await supabase.auth.getUser();
+    if (requestUser) {
+      await createAuditEntry({
+        businessId,
+        userId: requestUser.id,
+        action: 'chat.message_processed',
+        entityType: 'conversation',
+        entityId: convId,
+        details: { intent: result.response.intent, confidence: result.response.confidence },
+      });
+    }
 
     return NextResponse.json({
       conversationId: convId,

@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "sql:validate": "node scripts-dev/sql-validate.mjs"
   },
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.15.1",
@@ -67,5 +69,10 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript": "5.2.2",
     "vaul": "^0.9.9"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
   }
 }

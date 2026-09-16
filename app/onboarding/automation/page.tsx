@@ -36,11 +36,11 @@ export default function OnboardingAutomationStep() {
               type="button"
               onClick={() => toggle(t.id)}
               className={`flex items-start gap-3 rounded-lg border-2 p-4 text-left transition-all ${
-                active ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300'
+                active ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/40'
               }`}
             >
               <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
-                active ? 'border-primary bg-primary' : 'border-slate-300'
+                active ? 'border-primary bg-primary' : 'border-muted-foreground/30'
               }`}>
                 {active && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
               </div>

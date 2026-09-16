@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Inbox, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { ChatIllustration } from '@/components/ui/illustrations';
 import type { CustomerRequest } from '@/lib/types';
 
 export default function RequestsPage() {
@@ -45,9 +46,10 @@ export default function RequestsPage() {
           {loading ? (
             <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
           ) : requests.length === 0 ? (
-            <div className="flex flex-col items-center py-16 text-center">
-              <Inbox className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No requests yet. Customer requests from chat will appear here.</p>
+            <div className="flex flex-col items-center py-14 text-center">
+              <ChatIllustration className="mx-auto max-w-[280px] text-primary" />
+              <p className="mt-4 font-medium">No requests yet</p>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">When customers ask for orders, bookings, or help in chat, their requests land here for your team to act on.</p>
             </div>
           ) : (
             <Table>

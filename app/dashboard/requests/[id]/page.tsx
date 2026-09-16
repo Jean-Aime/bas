@@ -79,7 +79,7 @@ export default function RequestDetailPage() {
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><Inbox className="h-4 w-4" /> Description</CardTitle></CardHeader>
         <CardContent>
-          <p className="text-sm text-slate-700">{request.description || 'No description provided.'}</p>
+          <p className="text-sm">{request.description || 'No description provided.'}</p>
         </CardContent>
       </Card>
 

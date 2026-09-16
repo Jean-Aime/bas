@@ -39,10 +39,10 @@ export default function OnboardingBusinessStep() {
                 type="button"
                 onClick={() => setB({ ...b, type: t.value })}
                 className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 text-center transition-all ${
-                  b.type === t.value ? 'border-primary bg-primary/5' : 'border-slate-200 hover:border-slate-300'
+                  b.type === t.value ? 'border-primary bg-primary/5' : 'border-border hover:border-muted-foreground/40'
                 }`}
               >
-                <t.icon className={`h-6 w-6 ${b.type === t.value ? 'text-primary' : 'text-slate-500'}`} />
+                <t.icon className={`h-6 w-6 ${b.type === t.value ? 'text-primary' : 'text-muted-foreground'}`} />
                 <span className="text-xs font-medium">{t.label}</span>
               </button>
             ))}

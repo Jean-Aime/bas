@@ -6,12 +6,59 @@ import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Send, Bot, User, Zap, Activity, Loader2, MessageSquare } from 'lucide-react';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ArrowLeft, Send, Bot, User, Zap, Activity, Loader2, Sparkles, Headset, UserCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useBusiness } from '@/lib/auth/business-context';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import type { Conversation, Message, WorkflowExecutionLog } from '@/lib/types';
+
+type BubbleMeta = {
+  align: 'left' | 'right';
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  bubble: string;
+  chip: string;
+};
+
+const SENDER_STYLES: Record<string, BubbleMeta> = {
+  customer: {
+    align: 'left',
+    icon: UserCircle2,
+    label: 'Customer',
+    bubble: 'bg-muted text-foreground',
+    chip: 'bg-muted text-muted-foreground',
+  },
+  assistant: {
+    align: 'right',
+    icon: Bot,
+    label: 'AI Assistant',
+    bubble: 'bg-primary text-primary-foreground',
+    chip: 'bg-primary/15 text-primary-foreground/90',
+  },
+  staff: {
+    align: 'right',
+    icon: Headset,
+    label: 'Agent',
+    bubble: 'bg-success text-success-foreground',
+    chip: 'bg-success/20 text-success-foreground',
+  },
+  system: {
+    align: 'left',
+    icon: Zap,
+    label: 'System',
+    bubble: 'bg-surface-2 text-foreground/80 border border-border',
+    chip: 'bg-border/60 text-muted-foreground',
+  },
+};
+
+const LOG_STATUS_STYLES: Record<string, string> = {
+  completed: 'bg-success/10 text-success',
+  failed: 'bg-destructive/10 text-destructive',
+  running: 'bg-info/10 text-info animate-pulse',
+};
 
 export default function ConversationDetailPage() {
   const { id } = useParams();
@@ -26,6 +73,7 @@ export default function ConversationDetailPage() {
 
   useEffect(() => {
     if (id && currentBusiness) loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, currentBusiness]);
 
   useEffect(() => {
@@ -93,90 +141,181 @@ export default function ConversationDetailPage() {
     loadData();
   };
 
-  if (loading) return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-9 w-9 rounded-lg" />
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-4 w-56" />
+          </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="rounded-xl border border-border bg-card p-4 lg:col-span-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={cn('mb-4 flex', i % 2 ? 'justify-end' : 'justify-start')}>
+                <Skeleton className={cn('h-16 rounded-2xl', i % 2 ? 'w-56' : 'w-48')} />
+              </div>
+            ))}
+          </div>
+          <div className="rounded-xl border border-border bg-card p-4">
+            <Skeleton className="h-4 w-32" />
+            <div className="mt-4 space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-12" />)}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/conversations"><Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button></Link>
-        <div className="flex-1">
-          <h1 className="text-xl font-bold">Conversation</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <Badge variant="outline">{conversation?.channel}</Badge>
-            {conversation?.is_handover && <Badge variant="secondary">Handover</Badge>}
-            {conversation?.detected_intent && <Badge>{conversation.detected_intent}</Badge>}
-            {conversation?.confidence && <span className="text-xs text-muted-foreground">{(conversation.confidence * 100).toFixed(0)}% confidence</span>}
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex flex-1 items-center gap-3">
+          <Link href="/dashboard/conversations">
+            <Button variant="ghost" size="icon" aria-label="Back to conversations">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold tracking-tight">Conversation</h1>
+              <StatusBadge status={conversation?.is_handover ? 'handover' : conversation?.status} />
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <Badge variant="outline" className="capitalize">{conversation?.channel || '—'}</Badge>
+              {conversation?.detected_intent && <Badge variant="secondary">{conversation.detected_intent}</Badge>}
+              {conversation?.confidence && (
+                <span className="text-xs text-muted-foreground">
+                  {(conversation.confidence * 100).toFixed(0)}% confidence
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        {!conversation?.is_handover && <Button variant="outline" onClick={handleTakeover}>Take Over</Button>}
-        {conversation?.status !== 'resolved' && <Button variant="outline" onClick={handleResolve}>Mark Resolved</Button>}
+        <div className="flex items-center gap-2">
+          {!conversation?.is_handover && (
+            <Button variant="outline" size="sm" onClick={handleTakeover}>Take Over</Button>
+          )}
+          {conversation?.status !== 'resolved' && (
+            <Button variant="outline" size="sm" onClick={handleResolve}>Mark Resolved</Button>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Chat */}
-        <Card className="lg:col-span-2 flex flex-col h-[600px]">
-          <CardHeader className="border-b py-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <MessageSquare /> Messages
-            </CardTitle>
-          </CardHeader>
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
-            {messages.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-8">No messages in this conversation.</p>
-            ) : messages.map((m) => (
-              <div key={m.id} className={`flex ${m.sender_type === 'customer' ? 'justify-start' : 'justify-end'}`}>
-                <div className={`max-w-[80%] rounded-lg p-3 ${
-                  m.sender_type === 'customer' ? 'bg-slate-100 text-slate-900' :
-                  m.sender_type === 'assistant' ? 'bg-primary text-primary-foreground' :
-                  'bg-green-600 text-white'
-                }`}>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    {m.sender_type === 'customer' ? <User className="h-3 w-3" /> : m.sender_type === 'assistant' ? <Bot className="h-3 w-3" /> : <User className="h-3 w-3" />}
-                    <span className="text-xs opacity-80">{m.sender_type}</span>
-                    {m.intent && <span className="text-xs opacity-60">· {m.intent}</span>}
-                  </div>
-                  <p className="text-sm whitespace-pre-wrap">{m.content}</p>
-                </div>
-              </div>
-            ))}
+        <div className="flex h-[620px] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card lg:col-span-2">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3">
+            <span className="text-sm font-medium">Messages</span>
+            <span className="text-xs text-muted-foreground">{messages.length} messages</span>
           </div>
-          <div className="border-t p-3 flex gap-2">
-            <Textarea value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Type a reply..." rows={2} className="flex-1 resize-none" onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
-            <Button onClick={handleSend} disabled={sending || !reply.trim()} size="icon" className="self-end"><Send className="h-4 w-4" /></Button>
-          </div>
-        </Card>
 
-        {/* Execution logs */}
-        <Card className="h-[600px] flex flex-col">
-          <CardHeader className="border-b py-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2"><Activity className="h-4 w-4" /> Workflow Execution</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto p-4 scrollbar-thin">
+          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4 scrollbar-thin">
+            {messages.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">No messages in this conversation.</p>
+            ) : (
+              messages.map((m) => {
+                const s = SENDER_STYLES[m.sender_type] ?? SENDER_STYLES.system;
+                const Icon = s.icon;
+                const isEvent = m.sender_type === 'system';
+                return (
+                  <div
+                    key={m.id}
+                    className={cn('flex animate-fade-in', s.align === 'right' ? 'justify-end' : 'justify-start')}
+                  >
+                    {isEvent ? (
+                      <div className="mx-auto flex items-center gap-1.5 rounded-full border border-border bg-surface-2/60 px-3 py-1 text-xs text-muted-foreground">
+                        <Zap className="h-3 w-3 text-primary" />
+                        <span className="truncate max-w-xs">{m.content}</span>
+                      </div>
+                    ) : (
+                      <div className={cn('max-w-[80%] sm:max-w-[70%]', s.align === 'right' && 'items-end')}>
+                        <div
+                          className={cn(
+                            'mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground',
+                            s.align === 'right' && 'justify-end'
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          {s.label}
+                          {m.intent && <span className="font-normal opacity-70">· {m.intent}</span>}
+                        </div>
+                        <div className={cn('rounded-2xl px-3.5 py-2.5 text-sm shadow-sm', s.bubble)}>
+                          <p className="whitespace-pre-wrap">{m.content}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          <div className="flex items-end gap-2 border-t border-border p-3">
+            <Textarea
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              placeholder="Reply as agent…"
+              rows={2}
+              className="flex-1 resize-none"
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            />
+            <Button onClick={handleSend} disabled={sending || !reply.trim()} size="icon" className="self-end" aria-label="Send reply">
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Workflow execution */}
+        <div className="flex h-[620px] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card">
+          <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+            <Activity className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Automation</span>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 scrollbar-thin">
             {logs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center">
-                <Zap className="h-8 w-8 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">No workflow execution logs for this conversation.</p>
+              <div className="flex h-full flex-col items-center justify-center text-center">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted">
+                  <Zap className="h-5 w-5 text-muted-foreground" />
+                </span>
+                <p className="mt-3 text-sm font-medium">No automation ran</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Workflow executions for this conversation will appear here.
+                </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {logs.map((log) => (
-                  <div key={log.id} className="flex items-start gap-3">
-                    <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
-                      log.status === 'completed' ? 'bg-green-100 text-green-700' :
-                      log.status === 'failed' ? 'bg-red-100 text-red-700' :
-                      'bg-slate-100 text-slate-600'
-                    }`}>{log.step_index + 1}</div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{log.step_name}</p>
-                      {log.message && <p className="text-xs text-muted-foreground">{log.message}</p>}
-                      <Badge variant={log.status === 'completed' ? 'default' : log.status === 'failed' ? 'destructive' : 'outline'} className="mt-1 text-xs">{log.status}</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ol className="relative space-y-4 pl-1">
+                <span className="absolute bottom-2 left-[13px] top-2 w-px bg-border" aria-hidden />
+                {logs.map((log) => {
+                  const tone = LOG_STATUS_STYLES[log.status] ?? 'bg-muted text-muted-foreground';
+                  const done = log.status === 'completed';
+                  return (
+                    <li key={log.id} className="relative flex items-start gap-3">
+                      <span
+                        className={cn(
+                          'z-10 mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold',
+                          tone
+                        )}
+                      >
+                        {done ? <Sparkles className="h-3 w-3" /> : log.step_index + 1}
+                      </span>
+                      <div className="min-w-0 flex-1 pb-1">
+                        <p className="text-sm font-medium leading-snug">{log.step_name}</p>
+                        {log.message && (
+                          <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{log.message}</p>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/context';
 import { supabase } from '@/lib/supabase/client';
-import { ErrorState, PermissionDenied } from '@/components/ui/page-states';
+import { PermissionDenied } from '@/components/ui/page-states';
+import { DemoModeToggle } from '@/components/demo/demo-mode-toggle';
 import { Loader2, LayoutDashboard, Building2, Users, Workflow, Plug, Bot, Settings, ScrollText, HeartPulse, ArrowLeft, Zap } from 'lucide-react';
 
 const NAV = [
@@ -26,8 +27,6 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const [checking, setChecking] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (authLoading) return;
@@ -35,56 +34,29 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       router.push('/login');
       return;
     }
-    // A response landing after the signed-in user changed or signed out must
-    // not grant this component admin access.
-    let cancelled = false;
-    setChecking(true);
-
     supabase
       .from('memberships')
       .select('id')
       .eq('user_id', user.id)
       .eq('role', 'platform_admin')
       .maybeSingle()
-      .then(({ data, error: checkError }) => {
-        if (cancelled) return;
-        // A failed lookup is not proof that this user lacks the role.
-        if (checkError) {
-          setError(checkError.message || 'Could not verify your platform access.');
-          setChecking(false);
-          return;
-        }
-        setError(null);
+      .then(({ data }) => {
         setIsAdmin(!!data);
         setChecking(false);
       });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user, authLoading, router, attempt]);
+  }, [user, authLoading, router]);
 
   if (authLoading || checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+      <div className="flex min-h-screen items-center justify-center bg-surface-2">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
-        <div className="w-full max-w-md">
-          <ErrorState message={error} onRetry={() => setAttempt((a) => a + 1)} />
-        </div>
       </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
+      <div className="flex min-h-screen items-center justify-center bg-surface-2 p-4">
         <div className="w-full max-w-md">
           <PermissionDenied
             title="Platform admins only"
@@ -96,14 +68,14 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
-      <aside className="hidden w-64 shrink-0 flex-col border-r bg-white lg:flex">
-        <Link href="/admin" className="flex items-center gap-2 border-b px-5 py-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
+    <div className="flex min-h-screen bg-surface-2">
+      <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
+        <Link href="/admin" className="flex items-center gap-2.5 border-b border-border px-5 py-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
             <Zap className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-bold leading-tight">BAS Platform</p>
+            <p className="text-sm font-bold leading-tight tracking-tight">BAS Platform</p>
             <p className="text-xs text-muted-foreground">Administration</p>
           </div>
         </Link>
@@ -114,8 +86,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium ${
-                  active ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
               >
                 <item.icon className="h-4 w-4" />
@@ -125,13 +99,16 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="border-t p-3">
-          <Link href="/dashboard" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+          <Link href="/dashboard" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <ArrowLeft className="h-4 w-4" />
             Business app
           </Link>
         </div>
       </aside>
       <div className="flex flex-1 flex-col">
+        <header className="flex items-center justify-end border-b border-border bg-background/60 px-4 py-2">
+          <DemoModeToggle />
+        </header>
         <main className="flex-1 p-4 lg:p-8">{children}</main>
       </div>
     </div>

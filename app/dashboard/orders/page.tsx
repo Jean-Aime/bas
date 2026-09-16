@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useBusiness } from '@/lib/auth/business-context';
-import { supabase } from '@/lib/supabase/client';
+import { fetchOrders, updateOrderStatus } from '@/lib/services/crm-service';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ShoppingCart, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PageHeader } from '@/components/ui/page-header';
+import { ShoppingCart, PackageOpen } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import type { Order } from '@/lib/types';
@@ -17,42 +19,47 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { if (currentBusiness) loadOrders(); }, [currentBusiness]);
-
-  const loadOrders = async () => {
+  const reload = useCallback(async () => {
     if (!currentBusiness) return;
     setLoading(true);
-    const { data } = await supabase.from('orders').select('*').eq('business_id', currentBusiness.id).order('created_at', { ascending: false });
-    setOrders((data || []) as Order[]);
+    const rows = await fetchOrders(currentBusiness.id);
+    setOrders(rows);
     setLoading(false);
-  };
+  }, [currentBusiness]);
 
-  const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from('orders').update({ status }).eq('id', id);
-    if (error) { toast.error(error.message); return; }
+  useEffect(() => { reload(); }, [reload]);
+
+  const handleStatus = async (id: string, status: string) => {
+    const { error } = await updateOrderStatus(id, status);
+    if (error) { toast.error(error); return; }
     toast.success(`Order ${status}`);
-    loadOrders();
+    reload();
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
-        <p className="text-muted-foreground">Customer order requests</p>
-      </div>
+      <PageHeader title="Orders" description="Customer order requests from chat" />
+
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-lg" />)}
+            </div>
           ) : orders.length === 0 ? (
             <div className="flex flex-col items-center py-16 text-center">
-              <ShoppingCart className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">No orders yet. Orders from customer chat will appear here.</p>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
+                <PackageOpen className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="mt-3 font-medium">No orders yet</p>
+              <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+                When customers request orders in chat, they land here for your team to confirm and fulfill.
+              </p>
             </div>
           ) : (
             <Table>
               <TableHeader><TableRow>
-                <TableHead>Notes</TableHead><TableHead>Quantity</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead>Date</TableHead><TableHead className="text-right">Actions</TableHead>
+                <TableHead>Notes</TableHead><TableHead>Qty</TableHead><TableHead>Total</TableHead><TableHead>Status</TableHead><TableHead>Date</TableHead><TableHead className="text-right">Actions</TableHead>
               </TableRow></TableHeader>
               <TableBody>
                 {orders.map((o) => (
@@ -67,8 +74,8 @@ export default function OrdersPage() {
                         <Link href={`/dashboard/orders/${o.id}`}><Button size="sm" variant="ghost">View</Button></Link>
                         {o.status === 'pending' && (
                           <>
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(o.id, 'confirmed')}>Confirm</Button>
-                            <Button size="sm" variant="ghost" onClick={() => updateStatus(o.id, 'cancelled')}>Cancel</Button>
+                            <Button size="sm" variant="outline" onClick={() => handleStatus(o.id, 'confirmed')}>Confirm</Button>
+                            <Button size="sm" variant="ghost" onClick={() => handleStatus(o.id, 'cancelled')}>Cancel</Button>
                           </>
                         )}
                       </div>
