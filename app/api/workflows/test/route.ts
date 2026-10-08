@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase/server';
+import { createServerSupabase, getAuthenticatedUserId, getBearerToken, callerRoleInBusiness } from '@/lib/supabase/server';
 import { loadBusinessContext } from '@/lib/workflow/engine';
 import { processMessage } from '@/lib/ai';
 import { LocalAIProvider } from '@/lib/ai/local-provider';
@@ -9,11 +9,24 @@ export async function POST(req: NextRequest) {
   try {
     const { workflowId, businessId, message } = await req.json();
 
+    // Auth first — before any validation feedback leaves the server.
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     if (!workflowId || !businessId || !message) {
       return NextResponse.json({ error: 'workflowId, businessId, and message are required' }, { status: 400 });
     }
 
-    const supabase = createServerSupabase();
+    // Caller must be an authenticated member of this business.
+    const token = getBearerToken(req);
+    const role = await callerRoleInBusiness(token, userId, businessId);
+    if (!role) {
+      return NextResponse.json({ error: 'You are not a member of this business' }, { status: 403 });
+    }
+
+    const supabase = createServerSupabase(token);
 
     const { data: workflow } = await supabase
       .from('workflows')

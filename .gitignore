@@ -38,3 +38,8 @@ next-env.d.ts
 # local tooling
 .bolt/
 .freebuff/
+
+# pg-verify harness runtime artifacts
+scripts/pg-verify/node_modules/
+scripts/pg-verify/run.log
+scripts/pg-verify/data/

@@ -59,7 +59,7 @@ export default function ConversationsPage() {
                   <TableRow key={c.id}>
                     <TableCell>
                       <Link href={`/dashboard/conversations/${c.id}`} className="flex items-center gap-2 font-medium hover:text-primary">
-                        {c.is_handover ? <User className="h-4 w-4 text-orange-500" /> : <Bot className="h-4 w-4 text-primary" />}
+                        {c.is_handover ? <User className="h-4 w-4 text-warning" /> : <Bot className="h-4 w-4 text-primary" />}
                         {c.channel}
                       </Link>
                     </TableCell>

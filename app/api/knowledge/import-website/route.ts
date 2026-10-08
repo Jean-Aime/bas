@@ -1,12 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase/server';
+import { createServerSupabase, getAuthenticatedUserId, getBearerToken, callerRoleInBusiness } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
   try {
     const { url, title, businessId } = await req.json();
 
+    // Auth first — before any validation feedback leaves the server.
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     if (!url || !businessId) {
       return NextResponse.json({ error: 'URL and business ID are required' }, { status: 400 });
+    }
+
+    // Caller must be an authenticated member of this business.
+    const token = getBearerToken(req);
+    const role = await callerRoleInBusiness(token, userId, businessId);
+    if (!role) {
+      return NextResponse.json({ error: 'You are not a member of this business' }, { status: 403 });
     }
 
     let parsedUrl: URL;
@@ -20,7 +33,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Only HTTP/HTTPS URLs are supported' }, { status: 400 });
     }
 
-    const supabase = createServerSupabase();
+    const supabase = createServerSupabase(token);
 
     const { data: source, error: sourceError } = await supabase
       .from('knowledge_sources')

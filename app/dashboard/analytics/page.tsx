@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
         </CardContent></Card>
         <Card><CardContent className="p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-50"><User className="h-5 w-5 text-orange-600" /></div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10"><User className="h-5 w-5 text-warning" /></div>
             <div><p className="text-sm text-muted-foreground">Customer Messages</p><p className="text-2xl font-bold">{stats.customerMessages}</p></div>
           </div>
         </CardContent></Card>

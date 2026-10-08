@@ -31,7 +31,8 @@ export function EntityForm({
   loading?: boolean;
 }) {
   const [values, setValues] = useState<Record<string, string>>(initial);
-  const set = (name: string, value: string) => setValues((prev) => ({ ...prev, [name]: value }));
+  const set = (name: string, value: string) =>
+    setValues((prev) => ({ ...prev, [name]: value }));
 
   return (
     <form
@@ -42,8 +43,10 @@ export function EntityForm({
       }}
     >
       {fields.map((f) => (
-        <div key={f.name} className="space-y-2">
-          <Label htmlFor={f.name}>{f.label}{f.required ? ' *' : ''}</Label>
+        <div key={f.name} className="space-y-1.5">
+          <Label htmlFor={f.name} className="text-sm font-medium">
+            {f.label}{f.required ? ' *' : ''}
+          </Label>
           {f.type === 'textarea' ? (
             <Textarea
               id={f.name}
@@ -51,6 +54,7 @@ export function EntityForm({
               placeholder={f.placeholder}
               value={values[f.name] || ''}
               onChange={(e) => set(f.name, e.target.value)}
+              className="bg-[hsl(var(--surface-1))] border-border/80 resize-none"
             />
           ) : (
             <Input
@@ -60,12 +64,17 @@ export function EntityForm({
               placeholder={f.placeholder}
               value={values[f.name] || ''}
               onChange={(e) => set(f.name, e.target.value)}
+              className="h-11 bg-[hsl(var(--surface-1))] border-border/80"
             />
           )}
         </div>
       ))}
       <div className="flex gap-3 pt-2">
-        <Button type="submit" disabled={loading}>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="brand-fill border-0 shadow-sm hover:opacity-90 transition-all"
+        >
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {submitLabel}
         </Button>

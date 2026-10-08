@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, UserPlus, Shield, Trash2, Users, UserCog } from 'lucide-react';
 import { toast } from 'sonner';
+import { authHeaders } from '@/lib/supabase/client';
 
 interface TeamMember {
   id: string;
@@ -40,7 +41,7 @@ export function TeamTab() {
 
   const loadTeam = async () => {
     if (!currentBusiness) return;
-    const response = await fetch(`/api/team?businessId=${currentBusiness.id}`);
+    const response = await fetch(`/api/team?businessId=${currentBusiness.id}`, { headers: await authHeaders() });
     const data = await response.json();
     if (response.ok) setMembers((data.members || []) as TeamMember[]);
   };
@@ -51,7 +52,7 @@ export function TeamTab() {
     try {
       const response = await fetch('/api/team', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ businessId: currentBusiness.id, email: inviteForm.email.trim(), role: inviteForm.role }),
       });
       const data = await response.json();
@@ -69,7 +70,7 @@ export function TeamTab() {
   const changeRole = async (member: TeamMember, role: string) => {
     const response = await fetch('/api/team', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
       body: JSON.stringify({ id: member.id, role }),
     });
     const data = await response.json();
@@ -79,7 +80,7 @@ export function TeamTab() {
   };
 
   const removeMember = async (member: TeamMember) => {
-    const response = await fetch(`/api/team?id=${member.id}`, { method: 'DELETE' });
+    const response = await fetch(`/api/team?id=${member.id}`, { method: 'DELETE', headers: await authHeaders() });
     const data = await response.json();
     if (!response.ok) { toast.error(data.error || 'Failed to remove member'); return; }
     toast.success('Member removed');

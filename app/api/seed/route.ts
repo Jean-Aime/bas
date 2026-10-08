@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase/server';
+import { createServerSupabase, getAuthenticatedUserId, getBearerToken } from '@/lib/supabase/server';
 import { getTemplates } from '@/lib/workflow/templates';
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId } = await req.json();
-
+    // Only ever seeds data for the AUTHENTICATED caller — the body userId is
+    // ignored so this cannot be used to populate arbitrary accounts.
+    const userId = await getAuthenticatedUserId(req);
     if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const supabase = createServerSupabase();
+    const supabase = createServerSupabase(getBearerToken(req));
 
     const { data: existingMemberships } = await supabase
       .from('memberships')

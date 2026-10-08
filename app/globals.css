@@ -4,65 +4,134 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 71% 45%;
+    /*
+     * BAS palette — "ink on paper"
+     * Warm paper canvas, charcoal ink chrome (sidebar / topbar / nav),
+     * deep forest green for actions, one clay accent for highlights,
+     * and a single reserved brand red for the mobile conversation FAB.
+     * Flat and matte: depth comes from hairline borders — never from
+     * shadow, blur or gradient.
+     */
+    --background: 42 40% 94%;        /* warm paper */
+    --foreground: 35 25% 10%;        /* ink */
+
+    --card: 42 50% 98%;              /* off-white panel */
+    --card-foreground: 35 25% 10%;
+
+    --popover: 42 50% 98%;
+    --popover-foreground: 35 25% 10%;
+
+    /* Deep forest green — the single action color */
+    --primary: 152 45% 20%;
+    --primary-foreground: 42 40% 96%;
+
+    --secondary: 40 25% 91%;
+    --secondary-foreground: 35 25% 14%;
+
+    --muted: 40 22% 92%;
+    --muted-foreground: 35 8% 44%;
+
+    /* Accent = clay tint (hover states, quiet emphasis) */
+    --accent: 16 50% 93%;
+    --accent-foreground: 16 60% 30%;
+
+    --destructive: 0 62% 44%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 150 45% 30%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+
+    --warning: 30 75% 40%;
     --warning-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 199 89% 48%;
-    --chart-1: 199 89% 48%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --radius: 0.5rem;
+
+    /* Reserved brand red — mobile conversation action only */
+    --brand-red: 3 72% 50%;
+    --brand-red-fg: 0 0% 100%;
+
+    --border: 40 22% 86%;            /* hairline */
+    --input: 40 22% 84%;
+    --ring: 152 45% 28%;
+
+    /* Chart series: forest, clay, ochre, ink, teal — five, no rainbow */
+    --chart-1: 152 45% 24%;
+    --chart-2: 16 55% 48%;
+    --chart-3: 32 65% 45%;
+    --chart-4: 35 12% 38%;
+    --chart-5: 178 40% 34%;
+
+    --radius: 2px;
+
+    /* Surface layers — warm, close in value so depth comes from borders */
+    --surface-1: 42 40% 94%;
+    --surface-2: 40 28% 91%;
+    --surface-3: 40 22% 87%;
+
+    /* Ink chrome — sidebar, topbar, mobile nav, marketing bands */
+    --sidebar-bg: 35 20% 9%;
+    --sidebar-fg: 40 25% 88%;
+    --sidebar-muted: 35 8% 52%;
+    --sidebar-active: 16 65% 60%;    /* clay signal on ink */
+    --sidebar-hover: 35 16% 15%;
+    --sidebar-border: 35 16% 16%;
+
+    /* Motion — one easing family for the whole product */
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-swift: cubic-bezier(0.22, 1, 0.36, 1);
   }
+
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 13%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 199 89% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 71% 45%;
+    --background: 35 14% 9%;
+    --foreground: 40 25% 90%;
+
+    --card: 35 12% 13%;
+    --card-foreground: 40 25% 90%;
+
+    --popover: 35 12% 13%;
+    --popover-foreground: 40 25% 90%;
+
+    --primary: 152 40% 44%;
+    --primary-foreground: 35 25% 8%;
+
+    --secondary: 35 12% 18%;
+    --secondary-foreground: 40 25% 88%;
+
+    --muted: 35 10% 17%;
+    --muted-foreground: 35 8% 60%;
+
+    --accent: 16 40% 18%;
+    --accent-foreground: 16 65% 78%;
+
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 150 40% 46%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+
+    --warning: 30 75% 55%;
     --warning-foreground: 0 0% 100%;
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 199 89% 48%;
-    --chart-1: 199 89% 48%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+
+    --brand-red: 3 72% 56%;
+
+    --border: 35 12% 22%;
+    --input: 35 12% 24%;
+    --ring: 152 40% 50%;
+
+    --chart-1: 152 40% 46%;
+    --chart-2: 16 55% 58%;
+    --chart-3: 32 65% 58%;
+    --chart-4: 35 10% 62%;
+    --chart-5: 178 40% 50%;
+
+    --surface-1: 35 14% 9%;
+    --surface-2: 35 12% 13%;
+    --surface-3: 35 12% 17%;
+
+    --sidebar-bg: 35 16% 7%;
+    --sidebar-fg: 40 25% 86%;
+    --sidebar-muted: 35 8% 50%;
+    --sidebar-active: 16 65% 64%;
+    --sidebar-hover: 35 12% 13%;
+    --sidebar-border: 35 12% 15%;
   }
 }
 
@@ -70,25 +139,360 @@
   * {
     @apply border-border;
   }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings: "tnum" 0;
+  }
+
+  /* Focus ring — consistent, accessible */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Selection */
+  ::selection {
+    background: hsl(var(--primary) / 0.18);
+    color: hsl(var(--foreground));
   }
 }
 
+/* ─── Scrollbar ─────────────────────────────────────────────── */
 @layer utilities {
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  .scrollbar-thin::-webkit-scrollbar { width: 5px; height: 5px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 3px;
+    background: hsl(var(--muted-foreground) / 0.25);
+    border-radius: 99px;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.5);
+    background: hsl(var(--muted-foreground) / 0.45);
   }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* ─── Typography scale ──────────────────────────────────────── */
+@layer utilities {
+  /* Display sizes are fluid so headlines never break awkwardly
+     between breakpoints. Grotesque display face is loaded in app/layout.tsx. */
+  .text-display {
+    @apply font-bold leading-[1.02];
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+    font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+    letter-spacing: -0.035em;
+  }
+  .text-display-sm {
+    @apply font-bold leading-[1.06];
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+    font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+    letter-spacing: -0.03em;
+  }
+  .text-heading {
+    @apply text-2xl font-semibold tracking-tight leading-snug;
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+    letter-spacing: -0.022em;
+  }
+  .text-subheading {
+    @apply text-lg font-medium leading-snug;
+    letter-spacing: -0.012em;
+  }
+  /* Small caps eyebrow — the connective tissue of the design system */
+  .text-label {
+    @apply text-[11px] font-semibold uppercase;
+    letter-spacing: 0.14em;
+  }
+  .text-mono {
+    font-family: ui-monospace, 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    @apply text-sm;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Accent voice — clay-colored display word inside headlines */
+  .text-voice {
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    color: hsl(16 65% 44%);
+    letter-spacing: -0.01em;
+  }
+  .dark .text-voice { color: hsl(16 65% 64%); }
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+}
+
+/* ─── Flat surface utilities ────────────────────────────────── */
+@layer utilities {
+  /* All former glass/gradient/shadow helpers now resolve to flat,
+     matte surfaces with hairline borders. */
+  .glass {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+  }
+  .glass-dark {
+    background: hsl(var(--sidebar-bg));
+    border: 1px solid hsl(var(--sidebar-border));
+  }
+  .surface-raised {
+    background: hsl(var(--card));
+    box-shadow: 0 0 0 1px hsl(var(--border));
+  }
+  .surface-sunken {
+    background: hsl(var(--surface-2));
+    box-shadow: inset 0 0 0 1px hsl(var(--border));
+  }
+}
+
+/* ─── Flat brand utilities (solid fills, no gradients) ──────── */
+@layer utilities {
+  .brand-fill {
+    background: hsl(var(--primary));
+  }
+  .brand-tint {
+    background: hsl(var(--primary) / 0.10);
+  }
+}
+
+/* ─── Animation utilities ────────────────────────────────────── */
+@layer utilities {
+  .animate-in-up {
+    animation: in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-in-up-sm {
+    animation: in-up-sm 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-in-fade {
+    animation: in-fade 0.35s ease both;
+  }
+  .animate-in-scale {
+    animation: in-scale 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* Skeleton loading — flat matte pulse, no shimmer gradient */
+  .animate-shimmer {
+    animation: shimmer 1.8s ease-in-out infinite;
+    background: hsl(var(--surface-3));
+  }
+  .animate-pulse-dot {
+    animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  /* Formerly float/glow — decorative motion removed */
+  .animate-float { animation: none; }
+  .animate-glow { animation: none; }
+}
+
+@keyframes in-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes in-up-sm {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes in-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes in-scale {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ─── Stagger delay helpers ──────────────────────────────────── */
+@layer utilities {
+  .delay-75  { animation-delay: 75ms; }
+  .delay-100 { animation-delay: 100ms; }
+  .delay-150 { animation-delay: 150ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+  .delay-600 { animation-delay: 600ms; }
+}
+
+/* ─── Interactive states ─────────────────────────────────────── */
+@layer utilities {
+  /* Restrained: colour and border shifts only, no lift, no glow */
+  .interactive {
+    @apply transition-colors duration-200 ease-out;
+    cursor: pointer;
+  }
+  .card-hover {
+    @apply transition-colors duration-250 ease-out;
+  }
+  .card-hover:hover {
+    box-shadow: 0 0 0 1px hsl(var(--foreground) / 0.22);
+  }
+}
+
+/* ─── Ink chrome sidebar ─────────────────────────────────────── */
+@layer utilities {
+  .sidebar-item {
+    @apply relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 ease-out;
+    color: hsl(var(--sidebar-fg) / 0.62);
+  }
+  .sidebar-item:hover {
+    background: hsl(var(--sidebar-hover));
+    color: hsl(var(--sidebar-fg));
+  }
+  .sidebar-item.active {
+    background: hsl(var(--sidebar-fg) / 0.08);
+    color: hsl(var(--sidebar-fg));
+  }
+  .sidebar-item.active .sidebar-icon {
+    color: hsl(var(--sidebar-active));
+  }
+}
+
+/* ─── Stat card number ───────────────────────────────────────── */
+@layer utilities {
+  .stat-number {
+    @apply text-3xl font-bold tracking-tight;
+    font-family: var(--font-display), var(--font-inter), system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+  }
+}
+
+/* ─── Badge variants ─────────────────────────────────────────── */
+@layer utilities {
+  .badge-success {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    background: hsl(var(--success) / 0.12);
+    color: hsl(var(--success));
+  }
+  .badge-warning {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    background: hsl(var(--warning) / 0.14);
+    color: hsl(var(--warning));
+  }
+  .badge-destructive {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    background: hsl(var(--destructive) / 0.12);
+    color: hsl(var(--destructive));
+  }
+  .badge-primary {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+  }
+  .badge-neutral {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+/* ─── Dot indicator ──────────────────────────────────────────── */
+@layer utilities {
+  .dot-online  { @apply h-2 w-2 rounded-full; background: hsl(var(--success)); }
+  .dot-away    { @apply h-2 w-2 rounded-full; background: hsl(var(--warning)); }
+  .dot-offline { @apply h-2 w-2 rounded-full; background: hsl(var(--muted-foreground)); }
+}
+
+/* ─── Divider with label ─────────────────────────────────────── */
+@layer utilities {
+  .divider-label {
+    @apply flex items-center gap-3 text-xs text-muted-foreground;
+  }
+  .divider-label::before,
+  .divider-label::after {
+    content: '';
+    @apply flex-1 border-t border-border;
+  }
+}
+
+/* ─── Input focus halo — functional, not decorative ──────────── */
+@layer utilities {
+  .input-glow:focus-within {
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.14);
+  }
+}
+
+/* ─── Chat bubbles — flat, solid fills ───────────────────────── */
+@layer utilities {
+  .bubble-user {
+    @apply rounded-lg rounded-tr-sm;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  .bubble-bot {
+    @apply rounded-lg rounded-tl-sm;
+    background: hsl(var(--surface-2));
+    color: hsl(var(--foreground));
+  }
+}
+
+/* ─── Typing indicator dots ──────────────────────────────────── */
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--muted-foreground) / 0.5);
+  animation: typing-bounce 1.4s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30%            { transform: translateY(-5px); opacity: 1; }
+}
+
+/* ─── Micro-interactions ────────────────────────────────────── */
+@layer utilities {
+  /* Physical press — primary actions and icon buttons */
+  .press {
+    transition: transform 150ms var(--ease-out);
+  }
+  .press:active {
+    transform: scale(0.975);
+  }
+  /* Underline that draws in on hover — inline text links */
+  .link-draw {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 300ms var(--ease-out);
+  }
+  .link-draw:hover {
+    background-size: 100% 1px;
+  }
+  /* Quiet focus halo */
+  .halo:focus-visible {
+    @apply outline-none;
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary) / 0.55);
+  }
+}
+
+/* ─── Reduced motion — respect the OS setting ────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Shell tokens ───────────────────────────────────────────── */
+:root {
+  --sidebar-width: 248px;
+  --topbar-height: 60px;
 }

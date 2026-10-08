@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useBusiness } from '@/lib/auth/business-context';
-import { supabase } from '@/lib/supabase/client';
+import { supabase, authHeaders } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,7 +72,7 @@ export default function KnowledgePage() {
     try {
       const response = await fetch('/api/knowledge/import-website', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ url: urlForm.url, title: urlForm.title || urlForm.url, businessId: currentBusiness.id }),
       });
       const result = await response.json();

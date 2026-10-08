@@ -93,12 +93,12 @@ export function EntityManager<T extends { id: string }>({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <p className="text-muted-foreground">{description}</p>
+          <h1 className="text-heading text-foreground">{title}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{description}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" /> Add {entityLabel}</Button>
+            <Button onClick={openAdd} className="brand-fill border-0 shadow-sm hover:opacity-90 transition-all"><Plus className="mr-2 h-4 w-4" /> Add {entityLabel}</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -112,15 +112,18 @@ export function EntityManager<T extends { id: string }>({
         </Dialog>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
+      <div className="surface-raised rounded-2xl overflow-hidden">
+        <div className="p-0">
           {loading ? (
-            <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+            <div className="flex justify-center py-16"><div className="flex h-10 w-10 items-center justify-center rounded-xl brand-fill shadow-sm"><Loader2 className="h-5 w-5 text-white animate-spin" /></div></div>
           ) : rows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <Icon className="h-10 w-10 text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground mb-4">{emptyMessage}</p>
-              <Button onClick={openAdd} size="sm"><Plus className="mr-2 h-4 w-4" /> Add {entityLabel}</Button>
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-4">
+                <Icon className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-foreground mb-1">{emptyMessage}</p>
+              <p className="text-xs text-muted-foreground mb-5">Get started by adding your first {entityLabel.toLowerCase()}.</p>
+              <Button onClick={openAdd} size="sm" className="brand-fill border-0 shadow-sm"><Plus className="mr-2 h-4 w-4" /> Add {entityLabel}</Button>
             </div>
           ) : (
             <Table>
@@ -143,8 +146,8 @@ export function EntityManager<T extends { id: string }>({
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

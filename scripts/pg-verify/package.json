@@ -1,0 +1,17 @@
+{
+  "name": "pg-verify",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "embedded-postgres": "^18.4.0-beta.17",
+    "pg": "^8.23.1"
+  }
+}

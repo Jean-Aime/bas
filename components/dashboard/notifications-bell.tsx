@@ -102,17 +102,17 @@ export function NotificationsBell() {
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
-          <Bell className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="relative h-8 w-8 text-chrome-muted hover:bg-chrome-hover hover:text-chrome-fg" aria-label="Notifications">
+          <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b p-3">
+        <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
           <p className="text-sm font-semibold">Notifications</p>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={markAllRead}>
@@ -139,14 +139,14 @@ export function NotificationsBell() {
                     key={n.id}
                     onClick={() => handleClick(n)}
                     className={cn(
-                      'flex w-full items-start gap-3 p-3 text-left transition-colors hover:bg-slate-50',
+                      'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50',
                       !n.is_read && 'bg-primary/5'
                     )}
                   >
                     <div
                       className={cn(
                         'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
-                        n.type === 'warning' || n.type === 'error' ? 'bg-orange-50 text-orange-600' : 'bg-primary/10 text-primary'
+                        n.type === 'warning' || n.type === 'error' ? 'bg-warning/10 text-warning' : 'bg-primary/10 text-primary'
                       )}
                     >
                       <Icon className="h-4 w-4" />

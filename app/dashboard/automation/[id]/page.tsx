@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useBusiness } from '@/lib/auth/business-context';
-import { supabase } from '@/lib/supabase/client';
+import { supabase, authHeaders } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -176,7 +176,7 @@ export default function WorkflowBuilderPage() {
     try {
       const response = await fetch('/api/workflows/test', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({
           workflowId: workflow.id,
           businessId: currentBusiness.id,

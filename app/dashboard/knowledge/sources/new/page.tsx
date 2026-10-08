@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useBusiness } from '@/lib/auth/business-context';
+import { authHeaders } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +24,7 @@ export default function NewKnowledgeSourcePage() {
     try {
       const response = await fetch('/api/knowledge/import-website', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
         body: JSON.stringify({ businessId: currentBusiness.id, url: url.trim() }),
       });
       const data = await response.json();

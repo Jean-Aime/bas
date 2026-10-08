@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth/context';
 import { useBusiness } from '@/lib/auth/business-context';
 import { DashboardSidebar } from '@/components/dashboard/sidebar';
 import { DashboardTopbar } from '@/components/dashboard/topbar';
+import { MobileNav } from '@/components/dashboard/mobile-nav';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 
@@ -13,44 +14,41 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, loading: authLoading } = useAuth();
   const { currentBusiness, loading: bizLoading, error: bizError, refreshBusinesses } = useBusiness();
   const router = useRouter();
-  // Tracks the user the membership fetch has resolved for. On the commit where
-  // the user first appears (async session restore), the layout's effect runs
-  // before BusinessProvider's load effect, so memberships are still stale —
-  // skip that pass to avoid bouncing members to /onboarding on hard deep-loads.
   const resolvedUserId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-      return;
-    }
+    if (!authLoading && !user) { router.push('/login'); return; }
     const uid = user?.id ?? null;
-    if (uid !== resolvedUserId.current) {
-      resolvedUserId.current = uid;
-      return;
-    }
-    // A failed membership fetch says nothing about whether this user has a
-    // business — never send them to onboarding because of it.
+    if (uid !== resolvedUserId.current) { resolvedUserId.current = uid; return; }
     if (bizError) return;
     if (!authLoading && !bizLoading && !currentBusiness) router.push('/onboarding');
   }, [user, authLoading, bizLoading, currentBusiness, bizError, router]);
 
   if (authLoading || bizLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex min-h-screen items-center justify-center ">
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl brand-fill shadow-lg">
+            <Loader2 className="h-5 w-5 text-white animate-spin" />
+          </div>
+          <p className="text-sm text-muted-foreground">Loading your workspace…</p>
+        </div>
       </div>
     );
   }
 
   if (bizError && !currentBusiness) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-center">
-        <AlertTriangle className="h-8 w-8 text-destructive" />
-        <h1 className="text-lg font-semibold">Could not load your business</h1>
-        <p className="max-w-sm text-sm text-muted-foreground">{bizError}</p>
-        <Button variant="outline" size="sm" onClick={() => refreshBusinesses()}>
-          <RefreshCw className="mr-2 h-4 w-4" />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center ">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10">
+          <AlertTriangle className="h-6 w-6 text-destructive" />
+        </div>
+        <div>
+          <h1 className="text-base font-semibold mb-1">Could not load your business</h1>
+          <p className="text-sm text-muted-foreground max-w-sm">{bizError}</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => refreshBusinesses()} className="gap-2">
+          <RefreshCw className="h-3.5 w-3.5" />
           Retry
         </Button>
       </div>
@@ -60,13 +58,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user || !currentBusiness) return null;
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-[hsl(var(--surface-1))]">
       <DashboardSidebar />
-      <div className="flex flex-1 flex-col lg:pl-0">
+      <div className="flex flex-1 flex-col lg:pl-[var(--sidebar-width)]">
         <DashboardTopbar />
-        <main className="flex-1 overflow-auto p-4 lg:p-8">
+        <main className="flex-1 overflow-auto p-5 pb-28 lg:px-8 lg:py-7 lg:pb-7">
           {children}
         </main>
+        <MobileNav />
       </div>
     </div>
   );
